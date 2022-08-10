@@ -1,0 +1,262 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.4.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      sampleDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Set output format : choice of
+//      xmgr
+//      jplot
+//      gnuplot
+//      raw
+//      vtk
+//      ensight
+//      csv
+setFormat raw;
+
+// Surface output format. Choice of
+//      null        : suppress output
+//      ensight     : Ensight Gold format, one field per case file
+//      foamFile    : separate points, faces and values file
+//      dx          : DX scalar or vector format
+//      vtk         : VTK ascii format
+//      raw         : x y z value format for use with e.g. gnuplot 'splot'.
+//
+// Note:
+// other formats such as obj, stl, etc can also be written (by proxy)
+// but without any values!
+surfaceFormat raw;
+
+
+// interpolationScheme. choice of
+//      cell          : use cell-centre value only; constant over cells
+//                      (default)
+//      cellPoint     : use cell-centre and vertex values
+//      cellPointFace : use cell-centre, vertex and face values.
+//      pointMVC      : use point values only (Mean Value Coordinates)
+//      cellPatchConstrained : like 'cell' but uses cell-centre except on
+//                             boundary faces where it uses the boundary value.
+//                             For use with e.g. patchCloudSet.
+// 1] vertex values determined from neighbouring cell-centre values
+// 2] face values determined using the current face interpolation scheme
+//    for the field (linear, gamma, etc.)
+interpolationScheme cell;
+
+// Fields to sample.
+fields
+(
+	U
+    UMean
+    UPrime2Mean
+);
+
+// Set sampling definition: choice of
+//      uniform             evenly distributed points on line
+//      face                one point per face intersection
+//      midPoint            one point per cell, inbetween two face intersections
+//      midPointAndFace     combination of face and midPoint
+//
+//      polyLine            specified points, not nessecary on line, uses
+//                          tracking
+//      cloud               specified points, uses findCell
+//      triSurfaceMeshPointSet  points of triSurface
+//
+// axis: how to write point coordinate. Choice of
+// - x/y/z: x/y/z coordinate only
+// - xyz: three columns
+//  (probably does not make sense for anything but raw)
+// - distance: distance from start of sampling line (if uses line) or
+//             distance from first specified sampling point
+//
+// type specific:
+//      uniform, face, midPoint, midPointAndFace : start and end coordinate
+//      uniform: extra number of sampling points
+//      polyLine, cloud: list of coordinates
+//      patchCloud: list of coordinates and set of patches to look for nearest
+//      patchSeed: random sampling on set of patches. Points slightly off
+//                 face centre.
+sets
+(
+    probe_wake_cross1
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (5.48 -1.47 2.09);
+        end         (5.48 1.47 2.09);
+        nPoints     200;
+    }
+    probe_wake_cross2
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (5.48 -1.47 1.735);
+        end         (5.48 1.47 1.735);
+        nPoints     200;
+    }
+    probe_URef
+    {
+        type    cloud;
+        axis    xyz;
+        points  ((-2.37 0 2.09));
+    }
+    probe_wake_h1D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (2.37 -3 2.09);
+        end         (2.37 3 2.09);
+        nPoints     400;
+    }
+    probe_wake_h2D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (4.75 -3 2.09);
+        end         (4.75 3 2.09);
+        nPoints     400;
+    }
+    probe_wake_h3D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (7.12 -3 2.09);
+        end         (7.12 3 2.09);
+        nPoints     400;
+    }
+    probe_wake_h4D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (9.45 -3 2.09);
+        end         (9.45 3 2.09);
+        nPoints     400;
+    }
+    probe_wake_h5D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (11.85 -3 2.09);
+        end         (11.85 3 2.09);
+        nPoints     400;
+    }
+    probe_wake_h6D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (14.35 -3 2.09);
+        end         (14.35 3 2.09);
+        nPoints     400;
+    }
+    probe_wake_h7D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (16.55 -3 2.09);
+        end         (16.55 3 2.09);
+        nPoints     400;
+    }
+    probe_wake_h8D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (18.96 -3 2.09);
+        end         (18.96 3 2.09);
+        nPoints     400;
+    }
+    probe_wake_v1D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (2.37 0 3.7);
+        end         (2.37 0 0.1);
+        nPoints     400;
+    }
+    probe_wake_v2D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (4.74 0 3.7);
+        end         (4.74 0 0.1);
+        nPoints     400;
+    }
+    probe_wake_v3D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (7.11 0 3.7);
+        end         (7.11 0 0.1);
+        nPoints     400;
+    }
+    probe_wake_v4D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (9.48 0 3.7);
+        end         (9.48 0 0.1);
+        nPoints     400;
+    }
+    probe_wake_v5D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (11.85 0 3.7);
+        end         (11.85 0 0.1);
+        nPoints     400;
+    }
+    probe_wake_v6D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (14.22 0 3.7);
+        end         (14.22 0 0.1);
+        nPoints     400;
+    }
+    probe_wake_v7D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (16.59 0 3.7);
+        end         (16.59 0 0.1);
+        nPoints     400;
+    }
+    probe_wake_v8D
+    {
+        type        uniform;
+        axis        xyz;
+
+        start       (18.96 0 3.7);
+        end         (18.96 0 0.1);
+        nPoints     400;
+    }
+);
+
+
+
+// *********************************************************************** //
