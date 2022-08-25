@@ -12,7 +12,7 @@ def plot(figID, xVar, yVar, xLabel, yLabel, label, plotDir, figName, ylim=None, 
         plt.ylim(ylim[0], ylim[1])
     if title is not None:
         plt.title(title, fontweight='bold')
-    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=1200)
+    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=400)
 
 
 def plotUtils(figID, xVar, yVar, label=None):
@@ -24,10 +24,10 @@ def plotCompare(figID, xVar, yVar, label, plotDir, figName):
     plt.figure(figID)
     plt.plot(xVar, yVar, label=label)
     plt.legend(loc='center right', bbox_to_anchor=(1.1, 0.5))
-    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=1200)
+    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=400)
 
 
-def pltLogLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, yLim=None, xLim=None, title=None):
+def plotLogLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, yLim=None, xLim=None, title=None):
     plt.figure(figID)
     plt.loglog(xVar, yVar, label=label)
     plt.xlabel(xlabel)
@@ -38,17 +38,20 @@ def pltLogLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, yLim=N
         plt.ylim(yLim[0], yLim[1])
     if title is not None:
         plt.title(title, fontweight='bold')
-    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=1200)
+    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=400)
 
 
-def plotLogLogCompare(figID, xVar, yVar, label, plotDir, figName):
+def plotLogLogCompare(figID, xVar, yVar, label, plotDir, figName, style=None):
     plt.figure(figID)
-    plt.loglog(xVar, yVar, label=label)
+    if style is None:
+        plt.loglog(xVar, yVar, label=label)
+    else:
+        plt.loglog(xVar, yVar, style, label=label)
     plt.legend()
-    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=1200)
+    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=400)
 
 
-def pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, yLim=None, xLim=None, title=None):
+def plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, yLim=None, xLim=None, title=None):
     plt.figure(figID)
     plt.semilogy(xVar, yVar, label=label)
     plt.xlabel(xlabel)
@@ -59,14 +62,14 @@ def pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, yLim=None
         plt.ylim(yLim[0], yLim[1])
     if title is not None:
         plt.title(title, fontweight='bold')
-    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=1200)
+    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=400)
 
 
 def plotLogCompare(figID, xVar, yVar, label, plotDir, figName):
     plt.figure(figID)
     plt.semilogy(xVar, yVar, label=label)
     plt.legend()
-    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=1200)
+    plt.savefig(plotDir + '/' + figName + '.eps', format='eps', dpi=400)
 
 
 def plotLogUtils(figID, xVar, yVar, label=None):

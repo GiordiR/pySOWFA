@@ -9,6 +9,8 @@ import string
 from scipy.io import loadmat
 
 import utils
+from mathUtils import FFT, xcorr_fft
+from plotUtils import plot, plotUtils, plotCompare, plotLogLog, plotLogLogCompare, endPlot, getAxes, getTitle
 
 class Turbine(object):
     """
@@ -455,6 +457,11 @@ class OpenFOAM(Turbine):
         return Upow
 
     def plotEnergySpectrum(self, plotDir=None):
+        """
+        Compute and plot energy spectrum
+
+        :param str plotDir: plot saving directory path
+        """
 
         if plotDir is None:
             plotDir = './postProcessing/' + self.probeName + '/plots/'
@@ -480,30 +487,23 @@ class OpenFOAM(Turbine):
         S22frq, S22 = FFT(R22, self.frq)
         S33frq, S33 = FFT(R33, self.frq)
 
-        plt.figure()
-        plt.loglog(S11frq, S11, label=r"$S_{11}$")
-        plt.loglog(S11frq, S22, label=r"$S_{22}$")
-        plt.loglog(S11frq, S33, label=r"$S_{33}$")
-        plt.loglog(S11frq, 0.001 * S11frq ** (-5 / 3), '--', label='5/3 law')
-        plt.xlabel(r'$k_x$ [Hz]')
-        plt.ylabel('E(k)')
-        plt.legend()
-        plt.savefig(plotDir + '/EnergySpectrumS.eps')
-        plt.close()
+        plotLogLog(1, S11frq, S11, xlabel=r'$k_x$ [Hz]', ylabel='E(k)', label=r"$S_{11}$", plotDir=plotDir, figName='EnergySpectrumS', title='Energy Spectrum')
+        plotLogLogCompare(1, S22frq, S22, label=r"$S_{22}$", plotDir=plotDir, figName='EnergySpectrumS')
+        plotLogLogCompare(1, S33frq, S33, label=r"$S_{33}$", plotDir=plotDir, figName='EnergySpectrumS')
 
-        plt.figure()
-        plt.loglog(uxfrq, uxamp, label=r"$u_{x}$")
-        plt.loglog(uxfrq, uyamp, label=r"$u_{y}$")
-        plt.loglog(uxfrq, uzamp, label=r"$u_{z}$")
-        plt.loglog(uxfrq, 0.001 * uxfrq ** (-5 / 3), '--', label='5/3 law')
-        plt.xlabel(r'$k_x$ [Hz]')
-        plt.ylabel('E(k)')
-        plt.legend()
-        plt.savefig(plotDir + '/EnergySpectrumU.eps')
-        plt.close()
+        plotLogLog(2, uxfrq, uxamp, xlabel=r'$k_x$ [Hz]', ylabel='E(k)', label=r"$u_{x}$", plotDir=plotDir,
+                   figName='EnergySpectrumU', title='Energy Spectrum')
+        plotLogLogCompare(2, uxfrq, uyamp, label=r"$u_{y}$", plotDir=plotDir, figName='EnergySpectrumU')
+        plotLogLogCompare(2, uxfrq, uzamp, label=r"$u_{z}$", plotDir=plotDir, figName='EnergySpectrumU')
+        plotLogLogCompare(2, uxfrq, 0.001 * uxfrq ** (-5 / 3), style='--', label='5/3 law', plotDir=plotDir, figName='EnergySpectrumU')
+        endPlot()
 
     def plotSpaceCorrelations(self, plotDir=None):
+        """
+        Compute and plot space correlations of the turbulent quantities
 
+        :param str plotDir: plot saving directory path
+        """
         if plotDir is None:
             plotDir = './postProcessing/' + self.probeName + '/plots/'
         if not os.path.isdir(plotDir):
@@ -549,18 +549,18 @@ class OpenFOAM(Turbine):
                 xVar33 = self.taur33 * dz / Z
                 xlabel = 'z/Lz'
 
-        plt.figure()
-        plt.plot(xVar11, self.r11, label=r'$\rho_{11}$')
-        plt.plot(xVar22, self.r22, label=r'$\rho_{22}$')
-        plt.plot(xVar33, self.r33, label=r'$\rho_{33}$')
-        plt.xlabel(xlabel)
-        plt.ylabel(r'$\rho$')
-        plt.legend()
-        plt.savefig(plotDir + '/space_correlations.eps')
-        plt.close()
+        plot(1, xVar11, self.r11, xLabel=xlabel, yLabel=r'$\rho$', label=r'$\rho_{11}$', plotDir=plotDir,
+             figName='space_correlations', title='Space correlations')
+        plotCompare(1, xVar22, self.r22, label=r'$\rho_{22}$', plotDir=plotDir, figName='space_correlations')
+        plotCompare(1, xVar33, self.r33, label=r'$\rho_{33}$', plotDir=plotDir, figName='space_correlations')
+        endPlot()
 
     def plotTimeCorrelations(self, plotDir=None):
+        """
+        Compute and plot time correlations of the turbulent quantities
 
+        :param str plotDir: plot saving directory path
+        """
         if plotDir is None:
             plotDir = './postProcessing/' + self.probeName + '/plots/'
         if not os.path.isdir(plotDir):
@@ -577,34 +577,23 @@ class OpenFOAM(Turbine):
         self.r13, self.taur13 = xcorr_fft(ux, uz)
         self.r23, self.taur23 = xcorr_fft(uy, uz)
 
-        '''
-        T_through = abs(self.probeLoc[-1, 0] - self.probeLoc[0, 0])  / self.U0Mag
-        xVar11 = self.taur11 / T_through
-        xVar22 = self.taur22 / T_through
-        xVar33 = self.taur33 / T_through
+        plot(1, self.taur11, self.r11, xLabel=r'$\tau$', yLabel=r'$\rho$', label=r'$\rho_{11}$', plotDir=plotDir,
+             figName='time_correlations', title='Time correlations')
+        plotCompare(1, self.taur22, self.r22, label=r'$\rho_{22}$', plotDir=plotDir, figName='time_correlations')
+        plotCompare(1, self.taur33, self.r33, label=r'$\rho_{33}$', plotDir=plotDir, figName='time_correlations')
+        endPlot()
 
-        plt.figure()
-        plt.plot(xVar11, self.r11, label=r'$\rho_{11}$')
-        plt.plot(xVar22, self.r22, label=r'$\rho_{22}$')
-        plt.plot(xVar33, self.r33, label=r'$\rho_{33}$')
-        plt.xlabel(r'$\tau/T_{through}$')
-        plt.ylabel(r'$\rho$')
-        plt.legend()
-        plt.savefig(plotDir+'/time_correlations1.eps')
-        plt.close()
-        '''
+    def plotWindProfile(self, figID, plotDir=None, var='p', normVar=None, normalize=False, compareID=None):
+        """
+        Compute and plot wind profile
 
-        plt.figure()
-        plt.plot(self.taur11, self.r11, label=r'$\rho_{11}$')
-        plt.plot(self.taur22, self.r22, label=r'$\rho_{22}$')
-        plt.plot(self.taur33, self.r33, label=r'$\rho_{33}$')
-        plt.xlabel(r'$\tau$')
-        plt.ylabel(r'$\rho$')
-        plt.legend()
-        plt.savefig(plotDir + '/time_correlations.eps')
-        plt.close()
-
-    def plotWindProfile(self, figID, plotDir=None, var='p', normVar=None, normalize='off', compareID=None):
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: field to be plotted
+        :param str normVar: normalizing variable
+        :param bool normalize: boolean to use normalization
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = './postProcessing/' + self.probeName + '/plots/'
         if not os.path.isdir(plotDir):
@@ -630,7 +619,7 @@ class OpenFOAM(Turbine):
                 yVar = z
                 ylabel = 'z [m]'
                 ylim = [0, 3]
-            if normalize == 'off':
+            if normalize is False:
                 xVar = vars(self)[var][-1, probeStart:probeEnd]
                 xlabel = getAxes(var)
                 figName = var + str(figID)
@@ -647,7 +636,15 @@ class OpenFOAM(Turbine):
             probeStart = probeEnd
 
     def plotWakeProfile(self, figID, plotDir=None, var='p', normVar=None, compareID=None):
+        """
+        Compute and plot wake profile
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: field to be plotted
+        :param str normVar: normalizing variable
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = './postProcessing/' + self.probeName + '/plots/'
         if not os.path.isdir(plotDir):
@@ -725,7 +722,13 @@ class OpenFOAM(Turbine):
             self.ylabelWake = ylabel
 
     def plotWakeExperiment(self, compareID, plotDir=None, expProbe='probe_exp_cross1'):
+        """
+        Plot wwke profile from experimental data
 
+        :param int compareID: figure identification number for comparison
+        :param str plotDir: plot saving directory path
+        :param str expProbe: experimental probe name
+        """
         if plotDir is None:
             plotDir = './postProcessing/' + self.probeName + '/plots/'
         if not os.path.isdir(plotDir):
