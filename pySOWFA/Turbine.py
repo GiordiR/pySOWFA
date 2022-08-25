@@ -3,14 +3,12 @@ import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib as cm
-import scipy.fftpack as scfft
 import scipy.signal as scsig
 import scipy as sc
 import string
 from scipy.io import loadmat
-from mpl_toolkits.mplot3d import Axes3D
 
+import utils
 
 class Turbine(object):
     """
@@ -122,13 +120,37 @@ class Turbine(object):
 
 
 class OpenFOAM(Turbine):
+    """
+    Class to postprocess OpenFOAM related output files (e.g. probes)
 
-    def __init__(self, turbName, probeName, turbineDir=None, turbineFileName=None):
+    :param str turbineName: turbine name [turbine name, windTunnel, precursor, noTurbine]
+    :param str probeName: name of the probe set to be post-processed or created
+    :param str turbineDir: turbine directory path
+    :param str turbineFileName: turbine file name
+    """
+
+    def __init__(self, turbineName, probeName, turbineDir=None, turbineFileName=None):
         self.probeName = probeName
-        Turbine.__init__(self, turbName, turbineDir, turbineFileName)
+        Turbine.__init__(self, turbineName, turbineDir, turbineFileName)
 
     def makeProbes(self, probeDir='./', probeSets=1, outCtrl='timeStep', outInt=1, tStart=None, tEnd=None, fields=None,
                    x=np.array([(1, 1)]), y=np.array([(1, 1)]), z=np.array([(1, 1)]), nProbes=None, stepProbes=None):
+        """
+        Creates probes file to sample fields from OpenFOAM simulation
+
+        :param str probeDir: probe's output file directory
+        :param int probeSets: number of probe sets
+        :param str outCtrl: probe's output control
+        :param int outInt: probe's data output interval
+        :param int tStart: probe's sampling start time
+        :param int tEnd: probe's sampling end time
+        :param list(str) fields: probe's output fields
+        :param float x: probe's initial x coordinate
+        :param float y: probe's initial y coordinate
+        :param float z: probe's initial z coordinate
+        :param int nProbes: number of probes in a set
+        :param float stepProbes: spatial steps between consecutive probe's points
+        """
 
         # Fill default parameters
         if nProbes is None:
@@ -209,15 +231,21 @@ class OpenFOAM(Turbine):
             file.write("\n}")
 
     def readProbes(self, postProcDir=None):
-        '''
-        Update vector and scalar field lists
-        '''
+        """
+        Read probes data output from OpenFOAM output file
 
+        TODO: change self attributes to return ones
+
+        :param str postProcDir: post-processing OpenFOAM folder path
+        """
+
+        # Set post-processing folder path or default one
         if postProcDir is None:
             postProcDir = './postProcessing/'
         probePath = os.path.join(postProcDir, self.probeName, '')
-        timeDir = os.listdir(probePath)
 
+        # Read probes files in post-processing time folders
+        timeDir = os.listdir(probePath)
         for t in range(0, len(timeDir)):
             probeDir = os.path.join(probePath, timeDir[t], '')
             files = os.listdir(probeDir)
@@ -261,9 +289,8 @@ class OpenFOAM(Turbine):
             self.nProbeSets = nProbeSets + 1
             self.setsDim = np.array(setsDim)
 
-            vector_fields = ['U', 'UMean', 'omega', 'upMean']
-            scalar_fields = ['p', 'pMean', 'nuSgs', 'k', 'kMean', 'ppMean']
-            tensor_fields = ['RMean', 'uuMean', 'uuRTotal', 'UPrime2Mean']
+            # Read field values from file
+            scalar_fields, vector_fields, tensor_fields = utils.fieldsOF()
             for file in files:
                 if file in scalar_fields:
                     scalar_db = pd.read_csv(probeDir + file, sep='\s+', skiprows=self.nProbes + 2, header=None)
@@ -311,6 +338,12 @@ class OpenFOAM(Turbine):
         self.uz = self.Uz - self.UMeanz
 
     def readWakeExperiment(self, expDir=None, probeSet='cross'):
+        """
+        Read velocity data from experimental data
+
+        :param str expDir: experimental data file directory path
+        :param str probeSet: probe's name
+        """
 
         if expDir is None:
             expDir = '/home/giordi/Desktop/File_galleria/POLIMI_UNAFLOW_DATA'
@@ -374,7 +407,12 @@ class OpenFOAM(Turbine):
                 vars(self)['U2Meanz'+str(i)] = np.sum(self.U2z, axis=0) / len(self.U2z)
             '''
 
-    def getTurbulenceIntesity(self, rms='UPrime2Mean'):
+    def getTurbulenceIntensity(self, rms='UPrime2Mean'):
+        """
+        Calculate turbulence intensity index from RMean data or from UPrime2Mean data
+
+        :param str rms: type of rms data [RMean, UPrime2Mean]
+        """
         if rms == 'RMean':
             self.TIx = np.sqrt(self.RMeanxx) / self.UMeanx
             self.TIy = np.sqrt(self.RMeanyy) / self.UMeanx
@@ -389,7 +427,11 @@ class OpenFOAM(Turbine):
                 self.UMeanx ** 2 + self.UMeany ** 2 + self.UMeanz ** 2)
 
     def getAddedTurbulenceIntensity(self, TIref=None):
+        """
+        Calculate added turbulence intensity
 
+        :param TIref: reference turbulence intensity
+        """
         self.addTIx = np.sqrt(vars(TIref)['TIx'] ** 2 - self.TIx ** 2)
         self.addTIy = np.sqrt(vars(TIref)['TIy'] ** 2 - self.TIy ** 2)
         self.addTIz = np.sqrt(vars(TIref)['TIz'] ** 2 - self.TIz ** 2)
@@ -397,6 +439,20 @@ class OpenFOAM(Turbine):
 
     def getLESRatio(self):
         pass
+
+    def getPowerProfile(self, z, alpha, normVar):
+        """
+        Calculate reference velocity power profile
+
+        :param float z: z coordinate
+        :param float alpha: power law exponent
+        :param list normVar: normalizing variable
+        :return Upow: power profile velocity field
+        """
+        hub_H = 2.09
+        # Upow = getattr(normVar[0], normVar[1])[-1] * (z/hub_H)**alpha
+        Upow = 4.0 * (z / hub_H) ** alpha
+        return Upow
 
     def plotEnergySpectrum(self, plotDir=None):
 
@@ -547,12 +603,6 @@ class OpenFOAM(Turbine):
         plt.legend()
         plt.savefig(plotDir + '/time_correlations.eps')
         plt.close()
-
-    def getPowerProfile(self, z, alpha, normVar):
-        hub_H = 2.09
-        # Upow = getattr(normVar[0], normVar[1])[-1] * (z/hub_H)**alpha
-        Upow = 4.0 * (z / hub_H) ** alpha
-        return Upow
 
     def plotWindProfile(self, figID, plotDir=None, var='p', normVar=None, normalize='off', compareID=None):
         if plotDir is None:
