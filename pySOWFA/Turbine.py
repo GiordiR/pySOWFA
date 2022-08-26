@@ -12,6 +12,7 @@ import utils
 from mathUtils import FFT, xcorr_fft
 from plotUtils import plot, plotUtils, plotCompare, plotLogLog, plotLogLogCompare, plot3D, endPlot, getAxes, getTitle
 
+
 class Turbine(object):
     """
     Tubine class initialization: read the turbine parameters given the turbine name and directory
@@ -888,18 +889,18 @@ class OpenFOAM(Turbine):
         plot3D(1, xVar, yVar, zVar, xLabel, yLabel, zLabel, plotDir=plotDir, figName='Residual_'+var)
         endPlot()
 
+
 class SOWFA(Turbine):
     """
     Class to postprocess SOWFA related output files (e.g. Turbine output)
 
     :param str turbineName: turbine name [turbine name, windTunnel, precursor, noTurbine]
-    :param str probeName: name of the probe set to be post-processed or created
     :param str turbineDir: turbine directory path
     :param str turbineFileName: turbine file name
     """
 
-    def __init__(self, turbName, turbineDir=None, turbineFileName=None):
-        Turbine.__init__(self, turbName, turbineDir, turbineFileName)
+    def __init__(self, turbineName, turbineDir=None, turbineFileName=None):
+        Turbine.__init__(self, turbineName, turbineDir, turbineFileName)
 
     def readTurbineOutput(self, turbineOutDir=None, turbineNumber=1, nTurbines=1, fast=False):
         """
@@ -1242,9 +1243,15 @@ class SOWFA(Turbine):
 
 
 class FAST(Turbine):
+    """
+    Class to postprocess OpenFAST related output files (e.g. Turbine output, ElastoDyn outputs)
 
-    def __init__(self, turbName, turbineDir=None, turbineFileName=None):
-        Turbine.__init__(self, turbName, turbineDir, turbineFileName)
+    :param str turbineName: turbine name [turbine name, windTunnel, precursor, noTurbine]
+    :param str turbineDir: turbine directory path
+    :param str turbineFileName: turbine file name
+    """
+    def __init__(self, turbineName, turbineDir=None, turbineFileName=None):
+        Turbine.__init__(self, turbineName, turbineDir, turbineFileName)
 
     def readBladeProp(self, fastDir=None):
 
