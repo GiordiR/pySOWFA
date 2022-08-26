@@ -998,7 +998,15 @@ class SOWFA(Turbine):
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotNacelle(self, figID, turbineNumber=1, plotDir=None, var='all', compareID=None):
+        """
+        Plot Nacelle performance
 
+        :param int figID: figure identification number
+        :param int turbineNumber: Wind Turbine ID number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = './postProcessing/turbineOutput/plots/'
         if not os.path.isdir(plotDir):
@@ -1032,7 +1040,15 @@ class SOWFA(Turbine):
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotTower(self, figID, turbineNumber=1, plotDir=None, var='all', compareID=None):
+        """
+        Plot Tower performance
 
+        :param int figID: figure identification number
+        :param int turbineNumber: Wind Turbine ID number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = './postProcessing/turbineOutput/plots/'
         if not os.path.isdir(plotDir):
@@ -1066,7 +1082,15 @@ class SOWFA(Turbine):
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotBladeOverSpan(self, figID, turbineNumber=1, plotDir=None, var='all', compareID=None):
+        """
+        Plot Wind Turbine blade performance over blade span
 
+        :param int figID: figure identification number
+        :param int turbineNumber: Wind Turbine ID number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = './postProcessing/turbineOutput/plots/'
         if not os.path.isdir(plotDir):
@@ -1102,7 +1126,14 @@ class SOWFA(Turbine):
 
     def plotBladeOverTime(self, figID, turbineNumber=1, plotDir=None, var='all', Root_Tip='Root', compareID=None):
         """
-        Plot root and tip values over time
+        Plot Wind Turbine blade root and tip performance over time
+
+        :param int figID: figure identification number
+        :param int turbineNumber: Wind Turbine ID number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param str Root_Tip: blade station to be plotted ['Root', 'Tip']
+        :param int compareID: figure identification number for comparison
         """
         if plotDir is None:
             plotDir = './postProcessing/turbineOutput/plots/'
@@ -1140,7 +1171,14 @@ class SOWFA(Turbine):
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotBladeFrequency(self, turbineNumber=1, plotDir=None, var='all', point='Tip'):
+        """
+        Plot Wind Turbine blade performance in frequency domain
 
+        :param int turbineNumber: Wind Turbine ID number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param str point: blade station to be plotted ['Root', 'Tip']
+        """
         if plotDir is None:
             plotDir = './postProcessing/turbineOutput/plots/'
         if not os.path.isdir(plotDir):
