@@ -125,16 +125,16 @@ class Turbine(object):
 
 class OpenFOAM(Turbine):
     """
-    Class to postprocess OpenFOAM related output files (e.g. probes)
+    Class to postprocess OpenFOAM related output files (e.g. probes, sample)
 
     :param str turbineName: turbine name [turbine name, windTunnel, precursor, noTurbine]
-    :param str probeName: name of the probe set to be post-processed or created
+    :param str sampleName: name of the probe set to be post-processed or created
     :param str turbineDir: turbine directory path
     :param str turbineFileName: turbine file name
     """
 
-    def __init__(self, turbineName, probeName, turbineDir=None, turbineFileName=None):
-        self.probeName = probeName
+    def __init__(self, turbineName, sampleName, turbineDir=None, turbineFileName=None):
+        self.sampleName = sampleName
         Turbine.__init__(self, turbineName, turbineDir, turbineFileName)
 
     def makeProbes(self, probeDir='./', probeSets=1, outCtrl='timeStep', outInt=1, tStart=None, tEnd=None, fields=None,
@@ -179,13 +179,13 @@ class OpenFOAM(Turbine):
             raise NameError('FieldListError')
 
         # Open the file and write
-        with open(probeDir + str(self.probeName), 'w') as file:
-            file.write("{}".format(self.probeName))
+        with open(probeDir + str(self.sampleName), 'w') as file:
+            file.write("{}".format(self.sampleName))
             file.write("\n{")
             file.write("\n{:4}{:<30}{}".format('', 'type', 'probes;'))
             file.write("\n{:4}{:<30}{}".format('', 'functionObjectLibs', '("libsampling.so");'))
             file.write("\n{:4}{:<30}{}".format('', 'enabled', 'true;'))
-            file.write("\n{:4}{:<30}{}{}".format('', 'probeName', self.probeName, ';'))
+            file.write("\n{:4}{:<30}{}{}".format('', 'sampleName', self.sampleName, ';'))
             file.write("\n{:4}{:<30}{}{}".format('', 'outputControl', outCtrl, ';'))
             file.write("\n{:4}{:<30}{}{}".format('', 'outputInterval', int(outInt), ';'))
             if tStart and tEnd is not None:
@@ -246,7 +246,7 @@ class OpenFOAM(Turbine):
         # Set post-processing folder path or default one
         if postProcDir is None:
             postProcDir = './postProcessing/'
-        probePath = os.path.join(postProcDir, self.probeName, '')
+        probePath = os.path.join(postProcDir, self.sampleName, '')
 
         # Read probes files in post-processing time folders
         timeDir = os.listdir(probePath)
@@ -340,6 +340,104 @@ class OpenFOAM(Turbine):
         self.ux = self.Ux - self.UMeanx
         self.uy = self.Uy - self.UMeany
         self.uz = self.Uz - self.UMeanz
+
+    def makeSampleDict(self, fields=['U', 'UMean', 'UPrime2Mean'], sampleDictDir=None, setFormat='raw', surfaceFormat='raw', interpolationScheme='cell'):
+        """
+        Create sampleDict file for OpenFOAM simulation postprocess
+        TODO:write sets
+        :param list(str) fields: List of fields to be sampled
+        :param str sampleDictDir: sampleDict file directory path
+        :param str setFormat: output set format [raw, csv, gnuplot, ...]
+        :param str interpolationScheme: interpolation scheme [cell, cellPoint, cellPointFace, ...]
+        """
+        # Check for directory or make it
+        if not os.path.isdir(sampleDictDir):
+            print('Making directory: ' + sampleDictDir)
+            os.mkdir(sampleDictDir)
+
+        # Open the file and write
+        with open(sampleDictDir + '/sampleDict', 'w') as file:
+            file.write("\n{:<15}{:<30}{}".format('setFormat', setFormat, ';'))
+            file.write("\n{:<15}{:<30}{}".format('surfaceFormat', surfaceFormat, ';'))
+            file.write("\n{:<15}{:<30}{}".format('interpolationScheme', interpolationScheme, ';'))
+            file.write("\n\n}{}".format('fields'))
+            file.write("\n{}".format('('))
+            for field in fields:
+                file.write("\n{:4}{}".format('', field))
+            file.write("\n{}".format(');'))
+            file.write("\n\n{}".format( 'sets'))
+            file.write("\n{}".format('('))
+            # Write sets
+            '''
+            minimum = np.zeros((probeSets, 3))
+            maximum = np.zeros((probeSets, 3))
+            iterValue = np.zeros((probeSets, 3))
+            for i in range(0, probeSets):
+                count_n = 0
+                minimum[i, 0] = x[i, 0]
+                minimum[i, 1] = y[i, 0]
+                minimum[i, 2] = z[i, 0]
+                maximum[i, 0] = x[i, 1]
+                maximum[i, 1] = y[i, 1]
+                maximum[i, 2] = z[i, 1]
+                iterValue[i, 0] = x[i, 0]
+                iterValue[i, 1] = y[i, 0]
+                iterValue[i, 2] = z[i, 0]
+                if not (nProbes[i, :] == np.ones((1, 3))).all():
+                    step = np.zeros(3)
+                    step[0] = (maximum[i, 0] - minimum[i, 0]) / nProbes[i, 0]
+                    step[1] = (maximum[i, 1] - minimum[i, 1]) / nProbes[i, 1]
+                    step[2] = (maximum[i, 2] - minimum[i, 2]) / nProbes[i, 2]
+                    while (iterValue[i, :] <= maximum[i, :]).all() and (count_n <= max(nProbes[i, :])):
+                        file.write("\n{:8}{} {:f} {:f} {:f} {}".format('', '(', iterValue[i, 0], iterValue[i, 1],
+                                                                       iterValue[i, 2], ')'))
+                        iterValue[i, :] += step
+                        count_n += 1
+                    print("{} probes in set {} ".format(count_n, i + 1))
+                if not (stepProbes[i, :] == np.zeros((1, 3))).all():
+                    while (iterValue[i, :] <= maximum[i, :]).all():
+                        file.write("\n{:8}{} {:f} {:f} {:f} {}".format('', '(', iterValue[i, 0], iterValue[i, 1],
+                                                                       iterValue[i, 2], ')'))
+                        iterValue[i, :] += stepProbes[i, :]
+                        count_n += 1
+                    print("{} probes in set {} ".format(count_n, i + 1))
+            file.write("\n{:4}{}".format('', ');'))
+            file.write("\n}")
+            '''
+
+    def readSamples(self, var='Ux'):
+        """
+        Read sample set output data
+
+        :param str var: variable to be read from file
+        """
+        vector_components, tensor_components = utils.fieldsComponentsOF()
+        if var in vector_components and not var.startswith('UPrime2Mean'):
+            with open(self.pathSets + '/' + self.probeName + '_U_UMean.xy', "r") as file:
+                db = pd.read_csv(file, sep='\s+', skiprows=0, header=None)
+                values = db.to_numpy(dtype=float)
+                self.x = values[:, 0]
+                self.y = values[:, 1]
+                self.z = values[:, 2]
+                self.Ux = values[:, 3]
+                self.Uy = values[:, 4]
+                self.Uz = values[:, 5]
+                self.UMeanx = values[:, 6]
+                self.UMeany = values[:, 7]
+                self.UMeanz = values[:, 8]
+        elif var.startswith('UPrime2Mean'):
+            with open(self.pathSets + '/' + self.probeName + '_UPrime2Mean.xy', "r") as file:
+                db2 = pd.read_csv(file, sep='\s+', skiprows=0, header=None)
+                values2 = db2.to_numpy(dtype=float)
+                self.x = values2[:, 0]
+                self.y = values2[:, 1]
+                self.z = values2[:, 2]
+                self.UPrime2Meanxx = values2[:, 3]
+                self.UPrime2Meanxy = values2[:, 4]
+                self.UPrime2Meanxz = values2[:, 5]
+                self.UPrime2Meanyy = values2[:, 6]
+                self.UPrime2Meanyz = values2[:, 7]
+                self.UPrime2Meanzz = values2[:, 8]
 
     def readWakeExperiment(self, expDir=None, probeSet='cross'):
         """
@@ -466,7 +564,7 @@ class OpenFOAM(Turbine):
         """
 
         if plotDir is None:
-            plotDir = './postProcessing/' + self.probeName + '/plots/'
+            plotDir = './postProcessing/' + self.sampleName + '/plots/'
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
@@ -507,7 +605,7 @@ class OpenFOAM(Turbine):
         :param str plotDir: plot saving directory path
         """
         if plotDir is None:
-            plotDir = './postProcessing/' + self.probeName + '/plots/'
+            plotDir = './postProcessing/' + self.sampleName + '/plots/'
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
@@ -564,7 +662,7 @@ class OpenFOAM(Turbine):
         :param str plotDir: plot saving directory path
         """
         if plotDir is None:
-            plotDir = './postProcessing/' + self.probeName + '/plots/'
+            plotDir = './postProcessing/' + self.sampleName + '/plots/'
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
@@ -597,7 +695,7 @@ class OpenFOAM(Turbine):
         :param int compareID: figure identification number for comparison
         """
         if plotDir is None:
-            plotDir = './postProcessing/' + self.probeName + '/plots/'
+            plotDir = './postProcessing/' + self.sampleName + '/plots/'
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
@@ -637,92 +735,95 @@ class OpenFOAM(Turbine):
                 plot(figID, xVar, yVar, xlabel, ylabel, var, plotDir, figName, ylim=ylim)
             probeStart = probeEnd
 
-    def plotWakeProfile(self, figID, plotDir=None, var='p', normVar=None, compareID=None):
+    def plotWakeProfile(self, figID, plotDir=None, sampleType='probe', var='p', normVar=None, compareID=None):
         """
         Compute and plot wake profile
 
         :param int figID: figure identification number
         :param str plotDir: plot saving directory path
+        :param str sampleType: type of sample method used [probe, set]
         :param str var: field to be plotted
         :param str normVar: normalizing variable
         :param int compareID: figure identification number for comparison
         """
         if plotDir is None:
-            plotDir = './postProcessing/' + self.probeName + '/plots/'
+            plotDir = './postProcessing/' + self.sampleName + '/plots/'
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
-        # Plot every set of probes
-        probeStart = 0
-        for i in range(0, self.nProbeSets):
-            probeEnd = probeStart + self.setsDim[i]
-            x = self.probeLoc[probeStart:probeEnd, 0]
-            y = self.probeLoc[probeStart:probeEnd, 1]
-            z = self.probeLoc[probeStart:probeEnd, 2]
-            # Find x axis for plot
-            if x[1] != x[2]:
-                yVar = x / self.rotor_D
-                ylabel = 'x/D'
-                xlim = None
-                ylim = None
-            elif y[1] != y[2]:
-                yVar = y / self.rotor_D
-                ylabel = 'y/D'
-                ylim = [-1, 1]
-                xlim = [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                        max(vars(self)[var][-1, probeStart:probeEnd]) + 1]
-                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [0.5, 0.5])
-                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [0, 0])
-                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [-0.5, -0.5])
-            elif z[1] != z[2]:
-                yVar = z
-                ylabel = 'z [m]'
-                ylim = [0, 3.5]
-                xlim = [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                        max(vars(self)[var][-1, probeStart:probeEnd]) + 1]
-                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1],
-                          [self.nacelle_H - self.rotor_D / 2, self.nacelle_H - self.rotor_D / 2])
-                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [self.nacelle_H, self.nacelle_H])
-                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1],
-                          [self.nacelle_H + self.rotor_D / 2, self.nacelle_H + self.rotor_D / 2])
-            else:
-                raise ValueError("Error! Probe points are equal!")
-            if normVar is None:
-                xVar = vars(self)[var][-1, probeStart:probeEnd]
-                xlabel = getAxes(var)
-                figName = '/' + var + str(figID)
-            else:
-                xVar = np.divide(vars(self)[var][-1, probeStart:probeEnd], getattr(normVar[0], normVar[1])[-1])
-                xlabel = getAxes(var) + '/' + normVar[1]
-                figName = var + str(figID) + '_norm'
-            distance = round((x[0] / self.rotor_D) / 0.5) * 0.5
-            title = 'Distance: ' + str(distance) + 'D'
-            label = self.turbineName
-            if compareID is not None:
+        if sampleType=='probe':
+            # Plot every set of probes
+            probeStart = 0
+            for i in range(0, self.nProbeSets):
+                probeEnd = probeStart + self.setsDim[i]
+                x = self.probeLoc[probeStart:probeEnd, 0]
+                y = self.probeLoc[probeStart:probeEnd, 1]
+                z = self.probeLoc[probeStart:probeEnd, 2]
+                # Find x axis for plot
+                if x[1] != x[2]:
+                    yVar = x / self.rotor_D
+                    ylabel = 'x/D'
+                    xlim = None
+                    ylim = None
+                elif y[1] != y[2]:
+                    yVar = y / self.rotor_D
+                    ylabel = 'y/D'
+                    ylim = [-1, 1]
+                    xlim = [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                            max(vars(self)[var][-1, probeStart:probeEnd]) + 1]
+                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [0.5, 0.5])
+                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [0, 0])
+                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [-0.5, -0.5])
+                elif z[1] != z[2]:
+                    yVar = z
+                    ylabel = 'z [m]'
+                    ylim = [0, 3.5]
+                    xlim = [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                            max(vars(self)[var][-1, probeStart:probeEnd]) + 1]
+                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1],
+                              [self.nacelle_H - self.rotor_D / 2, self.nacelle_H - self.rotor_D / 2])
+                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [self.nacelle_H, self.nacelle_H])
+                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1],
+                              [self.nacelle_H + self.rotor_D / 2, self.nacelle_H + self.rotor_D / 2])
+                else:
+                    raise ValueError("Error! Probe points are equal!")
                 if normVar is None:
                     xVar = vars(self)[var][-1, probeStart:probeEnd]
-                    plotCompare(compareID, xVar, yVar, label, plotDir, figName)
+                    xlabel = getAxes(var)
+                    figName = '/' + var + str(figID)
                 else:
                     xVar = np.divide(vars(self)[var][-1, probeStart:probeEnd], getattr(normVar[0], normVar[1])[-1])
-                    plotCompare(compareID, xVar, yVar, var, plotDir, figName)
-            else:
-                if var.startswith('TI'):
-                    xlim = [0.0, 0.1]
-                if normVar is None:
-                    plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
+                    xlabel = getAxes(var) + '/' + normVar[1]
+                    figName = var + str(figID) + '_norm'
+                distance = round((x[0] / self.rotor_D) / 0.5) * 0.5
+                title = 'Distance: ' + str(distance) + 'D'
+                label = self.turbineName
+                if compareID is not None:
+                    if normVar is None:
+                        xVar = vars(self)[var][-1, probeStart:probeEnd]
+                        plotCompare(compareID, xVar, yVar, label, plotDir, figName)
+                    else:
+                        xVar = np.divide(vars(self)[var][-1, probeStart:probeEnd], getattr(normVar[0], normVar[1])[-1])
+                        plotCompare(compareID, xVar, yVar, var, plotDir, figName)
                 else:
-                    plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
-            probeStart = probeEnd
+                    if var.startswith('TI'):
+                        xlim = [0.0, 0.1]
+                    if normVar is None:
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
+                    else:
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
+                probeStart = probeEnd
 
             self.xVarWake = xVar
             self.yVarWake = yVar
             self.ylabelWake = ylabel
+        elif sampleType=='set':
 
     def plotWakeExperiment(self, compareID, plotDir=None, expProbe='probe_exp_cross1'):
         """
@@ -733,7 +834,7 @@ class OpenFOAM(Turbine):
         :param str expProbe: experimental probe name
         """
         if plotDir is None:
-            plotDir = './postProcessing/' + self.probeName + '/plots/'
+            plotDir = './postProcessing/' + self.sampleName + '/plots/'
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
@@ -776,7 +877,7 @@ class OpenFOAM(Turbine):
         :param int compareID: figure identification number for comparison
         """
         if plotDir is None:
-            plotDir = './postProcessing/' + self.probeName + '/plots/'
+            plotDir = './postProcessing/' + self.sampleName + '/plots/'
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
@@ -823,7 +924,7 @@ class OpenFOAM(Turbine):
             xVar = np.divide(getattr(normVar[0], normVar[1])[-1] - vars(self)[var][-1, probeStart:probeEnd],
                              getattr(normVar[0], normVar[1])[-1])
             xlabel = r'$\Delta$' + getAxes(var) + '/' + normVar[1]
-            title = 'Distance: ' + self.probeName[-2:]
+            title = 'Distance: ' + self.sampleName[-2:]
             figName = var + str(figID) + '_deficit'
             label = self.turbineName
             if compareID is not None:
@@ -848,7 +949,7 @@ class OpenFOAM(Turbine):
         :param int compareID: figure identification number for comparison
         """
         if plotDir is None:
-            plotDir = './postProcessing/' + self.probeName + '/plots/'
+            plotDir = './postProcessing/' + self.sampleName + '/plots/'
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
@@ -874,7 +975,7 @@ class OpenFOAM(Turbine):
         :param str var: field to be plotted
         """
         if plotDir is None:
-            plotDir = './postProcessing/' + self.probeName + '/plots/'
+            plotDir = './postProcessing/' + self.sampleName + '/plots/'
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
