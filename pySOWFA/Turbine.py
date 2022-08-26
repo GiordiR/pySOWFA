@@ -1695,7 +1695,16 @@ class FAST(Turbine):
             figID += 1
 
     def plotRotor(self, figID, plotDir=None, var='all', ylim=True, xlim=None, compareID=None):
+        """
+        Plot rotor output variables
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1751,7 +1760,16 @@ class FAST(Turbine):
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotRotorPSD(self, figID, plotDir=None, var='all', ylim=None, xlim=None, compareID=None):
+        """
+        Plot rotor output variables power spectral density
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1785,7 +1803,16 @@ class FAST(Turbine):
                 plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotTowerBaseLoads(self, figID, plotDir=None, var='all', ylim=True, xlim=None, compareID=None):
+        """
+        Plot tower base loads
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1841,7 +1868,16 @@ class FAST(Turbine):
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotTowerBaseLoadsPSD(self, figID, plotDir=None, var='all', ylim=None, xlim=None, compareID=None):
+        """
+        Plot tower base loads power spectral density
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1875,7 +1911,16 @@ class FAST(Turbine):
                 plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotTowerTopDisplacements(self, figID, plotDir=None, var='all', ylim=True, xlim=None, compareID=None):
+        """
+        Plot tower top displacements
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1931,7 +1976,16 @@ class FAST(Turbine):
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotTowerTopDisplacementsPSD(self, figID, plotDir=None, var='all', ylim=None, xlim=None, compareID=None):
+        """
+        Plot tower top displacements power spectral density
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1965,7 +2019,16 @@ class FAST(Turbine):
                 plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotTowerTopLoads(self, figID, plotDir=None, var='all', ylim=True, xlim=None, compareID=None):
+        """
+        Plot tower top loads
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -2021,7 +2084,16 @@ class FAST(Turbine):
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotTowerTopLoadsPSD(self, figID, plotDir=None, var='all', ylim=None, xlim=None, compareID=None):
+        """
+        Plot tower top loads power spectral density
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -2055,7 +2127,16 @@ class FAST(Turbine):
                 plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotLowSpeedShaft(self, figID, plotDir=None, var='all', ylim=True, xlim=None, compareID=None):
+        """
+        Plot low speed shaft variables
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -2111,7 +2192,16 @@ class FAST(Turbine):
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotHighSpeedShaft(self, figID, plotDir=None, var='all', ylim=True, xlim=None, compareID=None):
+        """
+        Plot high speed shaft variables
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -2167,7 +2257,11 @@ class FAST(Turbine):
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def generateStatistics(self, statFile=None):
+        """
+        Generate rotor statistics file
 
+        :param str statFile: rotor statistics file name
+        """
         if statFile is None:
             statFile = './FASTstatistics.txt'
 
