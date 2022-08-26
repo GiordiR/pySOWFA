@@ -10,7 +10,8 @@ from scipy.io import loadmat
 
 import utils
 from mathUtils import FFT, xcorr_fft
-from plotUtils import plot, plotUtils, plotCompare, plotLogLog, plotLogLogCompare, plot3D, endPlot, getAxes, getTitle
+from plotUtils import plot, plotUtils, plotCompare, plotLog, plotLogCompare, plotLogUtils, plotLogLog, \
+                      plotLogLogCompare, plot3D, endPlot, getAxes, getTitle
 
 
 class Turbine(object):
@@ -1254,7 +1255,11 @@ class FAST(Turbine):
         Turbine.__init__(self, turbineName, turbineDir, turbineFileName)
 
     def readBladeProp(self, fastDir=None):
+        """
+        Read Wind Turbine blade properties from OpenFAST input files
 
+        :param str fastDir: OpenFAST case directory path
+        """
         if fastDir is None:
             self.fastDir = './WTM'
         else:
@@ -1267,7 +1272,12 @@ class FAST(Turbine):
             self.normBldSpn = bldSpn / bldSpn[-1]
 
     def readOutput(self, outDir=None, outFileName=None):
+        """
+        Read OpenFAST output
 
+        :param str outDir: output directory path
+        :param str outFileName: output file name
+        """
         if outDir is None:
             self.outDir = './FASTout/'
         else:
@@ -1324,7 +1334,11 @@ class FAST(Turbine):
         self.bladeCm = np.array(self.bladeCm, dtype=float)
 
     def readForceExperiment(self, expDir=None):
+        """
+        Read force output from experimental data
 
+        :param str expDir: experimental data directory path
+        """
         if expDir is None:
             expDir = '/home/giordi/Desktop/File_galleria/POLIMI_UNAFLOW_DATA'
 
@@ -1345,7 +1359,16 @@ class FAST(Turbine):
         self.TTMz = force['FTTxyz'][:, 5]
 
     def plotBladeTipDeflections(self, figID, plotDir=None, var='all', ylim=True, xlim=None, compareID=None):
+        """
+        Plot blade tip deflections
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1373,8 +1396,7 @@ class FAST(Turbine):
                             up = 1.2 * max(yVar)
                         ylim = [low, up]
                     if compareID is None:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                             title=title)
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1397,12 +1419,21 @@ class FAST(Turbine):
                     up = 1.2 * max(yVar)
                 ylim = [low, up]
             if compareID is None:
-                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotBladeTipDeflectionsPSD(self, figID, plotDir=None, var='all', ylim=None, xlim=None, compareID=None):
+        """
+        Plot blade tip deflections power spectral density
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1425,8 +1456,7 @@ class FAST(Turbine):
                             yUtils = [min(yVar), max(yVar)]
                             plotLogUtils(figID, xUtils, yUtils)
                     if compareID is None:
-                        pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                               title=title)
+                        plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1444,12 +1474,21 @@ class FAST(Turbine):
                     yUtils = [min(yVar), max(yVar)]
                     plotLogUtils(figID, xUtils, yUtils)
             if compareID is None:
-                pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotBladeRoot(self, figID, plotDir=None, var='all', ylim=True, xlim=None, compareID=None):
+        """
+        Plot blade root output variables
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1477,8 +1516,7 @@ class FAST(Turbine):
                             up = 1.2 * max(yVar)
                         ylim = [low, up]
                     if compareID is None:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                             title=title)
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1501,12 +1539,21 @@ class FAST(Turbine):
                     up = 1.2 * max(yVar)
                 ylim = [low, up]
             if compareID is None:
-                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotBladeRootPSD(self, figID, plotDir=None, var='all', ylim=None, xlim=None, compareID=None):
+        """
+        Plot blade root output variables power spectral density
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1523,8 +1570,7 @@ class FAST(Turbine):
                     label = var
                     figName = var + '_PSD_' + str(figID)
                     if compareID is None:
-                        pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                               title=title)
+                        plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1536,12 +1582,21 @@ class FAST(Turbine):
             label = var
             figName = var + '_PSD_' + str(figID)
             if compareID is None:
-                pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotBladeOverTime(self, figID, plotDir=None, var='all', ylim=None, xlim=None, compareID=None):
+        """
+        Plot blade output variables over time
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param float ylim: plot y-axis limits
+        :param float xlim: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1569,8 +1624,7 @@ class FAST(Turbine):
                             up = 1.2 * max(yVar)
                         ylim = [low, up]
                     if compareID is None:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                             title=title)
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1593,13 +1647,20 @@ class FAST(Turbine):
                     up = 1.2 * max(yVar)
                 ylim = [low, up]
             if compareID is None:
-                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
             figID += 1
 
     def plotBladeOverSpan(self, figID, plotDir=None, window=None, compareID=None):
+        """
+        Plot blade output variables over blade span
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param list(float) window: plot x-axis limits
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = self.outDir + 'plot/'
 
@@ -1662,8 +1723,7 @@ class FAST(Turbine):
                             up = 1.2 * max(yVar)
                         ylim = [low, up]
                     if compareID is None:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                             title=title)
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1686,7 +1746,7 @@ class FAST(Turbine):
                     up = 1.2 * max(yVar)
                 ylim = [low, up]
             if compareID is None:
-                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
@@ -1708,8 +1768,7 @@ class FAST(Turbine):
                     label = var
                     figName = var + '_PSD_' + str(figID)
                     if compareID is None:
-                        pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                               title=title)
+                        plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1721,7 +1780,7 @@ class FAST(Turbine):
             label = var
             figName = var + '_PSD_' + str(figID)
             if compareID is None:
-                pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
 
@@ -1754,8 +1813,7 @@ class FAST(Turbine):
                             up = 1.2 * max(yVar)
                         ylim = [low, up]
                     if compareID is None:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                             title=title)
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1778,7 +1836,7 @@ class FAST(Turbine):
                     up = 1.2 * max(yVar)
                 ylim = [low, up]
             if compareID is None:
-                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
@@ -1800,8 +1858,7 @@ class FAST(Turbine):
                     label = var
                     figName = var + '_PSD_' + str(figID)
                     if compareID is None:
-                        pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                               title=title)
+                        plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1813,7 +1870,7 @@ class FAST(Turbine):
             label = var
             figName = var + '_PSD_' + str(figID)
             if compareID is None:
-                pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
 
@@ -1846,8 +1903,7 @@ class FAST(Turbine):
                             up = 1.2 * max(yVar)
                         ylim = [low, up]
                     if compareID is None:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                             title=title)
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1870,7 +1926,7 @@ class FAST(Turbine):
                     up = 1.2 * max(yVar)
                 ylim = [low, up]
             if compareID is None:
-                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
@@ -1892,8 +1948,7 @@ class FAST(Turbine):
                     label = var
                     figName = var + '_PSD_' + str(figID)
                     if compareID is None:
-                        pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                               title=title)
+                        plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1905,7 +1960,7 @@ class FAST(Turbine):
             label = var
             figName = var + '_PSD_' + str(figID)
             if compareID is None:
-                pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
 
@@ -1938,8 +1993,7 @@ class FAST(Turbine):
                             up = 1.2 * max(yVar)
                         ylim = [low, up]
                     if compareID is None:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                             title=title)
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1962,7 +2016,7 @@ class FAST(Turbine):
                     up = 1.2 * max(yVar)
                 ylim = [low, up]
             if compareID is None:
-                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
@@ -1984,8 +2038,7 @@ class FAST(Turbine):
                     label = var
                     figName = var + '_PSD_' + str(figID)
                     if compareID is None:
-                        pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                               title=title)
+                        plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -1997,7 +2050,7 @@ class FAST(Turbine):
             label = var
             figName = var + '_PSD_' + str(figID)
             if compareID is None:
-                pltLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plotLog(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
 
@@ -2030,8 +2083,7 @@ class FAST(Turbine):
                             up = 1.2 * max(yVar)
                         ylim = [low, up]
                     if compareID is None:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                             title=title)
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -2054,7 +2106,7 @@ class FAST(Turbine):
                     up = 1.2 * max(yVar)
                 ylim = [low, up]
             if compareID is None:
-                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
@@ -2087,8 +2139,7 @@ class FAST(Turbine):
                             up = 1.2 * max(yVar)
                         ylim = [low, up]
                     if compareID is None:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim,
-                             title=title)
+                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                     else:
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
@@ -2111,7 +2162,7 @@ class FAST(Turbine):
                     up = 1.2 * max(yVar)
                 ylim = [low, up]
             if compareID is None:
-                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim=ylim, xlim=xlim, title=title)
+                plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             else:
                 plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
