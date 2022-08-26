@@ -889,12 +889,27 @@ class OpenFOAM(Turbine):
         endPlot()
 
 class SOWFA(Turbine):
+    """
+    Class to postprocess SOWFA related output files (e.g. Turbine output)
+
+    :param str turbineName: turbine name [turbine name, windTunnel, precursor, noTurbine]
+    :param str probeName: name of the probe set to be post-processed or created
+    :param str turbineDir: turbine directory path
+    :param str turbineFileName: turbine file name
+    """
 
     def __init__(self, turbName, turbineDir=None, turbineFileName=None):
         Turbine.__init__(self, turbName, turbineDir, turbineFileName)
 
-    def readTurbineOutput(self, turbineOutDir=None, turbineNumber=1, nTurbines=1, FAST='off'):
+    def readTurbineOutput(self, turbineOutDir=None, turbineNumber=1, nTurbines=1, fast=False):
+        """
+        Read SOWFA turbine output files
 
+        :param str turbineOutDir: Wind Turbine output directory path
+        :param int turbineNumber: Wind Turbine ID number
+        :param int nTurbines: number of Wind Turbines considered
+        :param boolean fast: change output selection if SOWFA coupled with OpenFAST
+        """
         if turbineOutDir is None:
             turbineOutDir = "./postProcessing/turbineOutput/0/"
 
@@ -906,7 +921,7 @@ class SOWFA(Turbine):
         self.SOWFAblade = []
 
         # Only rotor files for SOWFA-FAST
-        if FAST == 'on':
+        if fast:
             for a in files[:]:
                 if a.startswith(('blade', 'nacelle', 'tower')):
                     files.remove(a)
@@ -941,7 +956,15 @@ class SOWFA(Turbine):
                     self.SOWFAblade.append(file)
 
     def plotTurbine(self, figID, turbineNumber=1, plotDir=None, var='all', compareID=None):
+        """
+        Plot Wind Turbine performance
 
+        :param int figID: figure identification number
+        :param int turbineNumber: Wind Turbine ID number
+        :param str plotDir: plot saving directory path
+        :param str var: variable to be plotted
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = './postProcessing/turbineOutput/plots/'
         if not os.path.isdir(plotDir):
