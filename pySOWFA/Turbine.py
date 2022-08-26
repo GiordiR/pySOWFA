@@ -10,7 +10,7 @@ from scipy.io import loadmat
 
 import utils
 from mathUtils import FFT, xcorr_fft
-from plotUtils import plot, plotUtils, plotCompare, plotLogLog, plotLogLogCompare, endPlot, getAxes, getTitle
+from plotUtils import plot, plotUtils, plotCompare, plotLogLog, plotLogLogCompare, plot3D, endPlot, getAxes, getTitle
 
 class Turbine(object):
     """
@@ -689,17 +689,18 @@ class OpenFOAM(Turbine):
                 plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
                                   max(vars(self)[var][-1, probeStart:probeEnd]) + 1],
                           [self.nacelle_H + self.rotor_D / 2, self.nacelle_H + self.rotor_D / 2])
+            else:
+                raise ValueError("Error! Probe points are equal!")
             if normVar is None:
                 xVar = vars(self)[var][-1, probeStart:probeEnd]
                 xlabel = getAxes(var)
                 figName = '/' + var + str(figID)
-                distance = round((x[0] / self.rotor_D) / 0.5) * 0.5
-                title = 'Distance: ' + str(distance) + 'D'
             else:
                 xVar = np.divide(vars(self)[var][-1, probeStart:probeEnd], getattr(normVar[0], normVar[1])[-1])
                 xlabel = getAxes(var) + '/' + normVar[1]
-                title = 'Distance: ' + str(distance) + 'D'
                 figName = var + str(figID) + '_norm'
+            distance = round((x[0] / self.rotor_D) / 0.5) * 0.5
+            title = 'Distance: ' + str(distance) + 'D'
             label = self.turbineName
             if compareID is not None:
                 if normVar is None:
@@ -723,7 +724,7 @@ class OpenFOAM(Turbine):
 
     def plotWakeExperiment(self, compareID, plotDir=None, expProbe='probe_exp_cross1'):
         """
-        Plot wwke profile from experimental data
+        Plot wake profile from experimental data
 
         :param int compareID: figure identification number for comparison
         :param str plotDir: plot saving directory path
@@ -763,7 +764,15 @@ class OpenFOAM(Turbine):
         self.yVarWakeExp = yVar
 
     def plotWakeDeficitProfile(self, figID, plotDir=None, var='p', normVar=None, compareID=None):
+        """
+        Compute and plot wake deficit profile
 
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str var: field to be plotted
+        :param str normVar: normalizing variable
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = './postProcessing/' + self.probeName + '/plots/'
         if not os.path.isdir(plotDir):
@@ -827,10 +836,15 @@ class OpenFOAM(Turbine):
             probeStart = probeEnd
 
     def plotWakeError(self, figID, plotDir=None, probeRef=None, probeCompare=None, labelCompare=None, compareID=None):
-        '''
-        :param probeRef: [reference object, 'x variable', 'y variable']
-        :param probeCompare: [comparative object, 'variable']
-        '''
+        """
+        Compute and plot wake error estimate between the calculated values and the reference ones
+
+        :param int figID: figure identification number
+        :param str plotDir: plot saving directory path
+        :param str probeRef: reference object direction ['x variable', 'y variable']
+        :param str probeCompare: comparative object variable
+        :param int compareID: figure identification number for comparison
+        """
         if plotDir is None:
             plotDir = './postProcessing/' + self.probeName + '/plots/'
         if not os.path.isdir(plotDir):
@@ -851,7 +865,12 @@ class OpenFOAM(Turbine):
             plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotResiduals(self, plotDir=None, var='UMeanx'):
+        """
+        Compute and plot residuals of the simulations
 
+        :param str plotDir: plot saving directory path
+        :param str var: field to be plotted
+        """
         if plotDir is None:
             plotDir = './postProcessing/' + self.probeName + '/plots/'
         if not os.path.isdir(plotDir):
@@ -861,19 +880,13 @@ class OpenFOAM(Turbine):
         yVar = self.time
         zVar = vars(self)[var]
 
-        fig = plt.figure()
-        # ax = Axes3D(fig)
-        ax = plt.axes(projection='3d')
-        col_map = plt.get_cmap('viridis')
-        X, Y = np.meshgrid(xVar, yVar, sparse=True)
-        ax.plot_surface(X, Y, zVar, cmap=col_map)
-        ax.set_xlabel('Height [m]')
-        ax.set_ylabel('Time [s]')
-        ax.set_zlabel(getAxes(var))
-        ax.view_init(20, 130)
-        fig.savefig(plotDir + 'Residual_' + var + '.eps', format='eps', dpi=1200)
-        plt.close()
+        # Plot residuals
+        xLabel = 'Height [m]'
+        yLabel = 'Time [s]'
+        zLabel = getAxes(var)
 
+        plot3D(1, xVar, yVar, zVar, xLabel, yLabel, zLabel, plotDir=plotDir, figName='Residual_'+var)
+        endPlot()
 
 class SOWFA(Turbine):
 

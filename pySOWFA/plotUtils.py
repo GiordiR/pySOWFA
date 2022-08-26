@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 def plot(figID, xVar, yVar, xLabel, yLabel, label, plotDir, figName, ylim=None, xlim=None, title=None):
     plt.figure(figID)
@@ -75,6 +75,18 @@ def plotLogCompare(figID, xVar, yVar, label, plotDir, figName):
 def plotLogUtils(figID, xVar, yVar, label=None):
     plt.figure(figID)
     plt.semilogy(xVar, yVar, '--g', linewidth=0.5, label=label)
+
+def plot3D(figID, xVar, yVar, zVar, xLabel, yLabel, zLabel, plotDir, figName):
+    fig = plt.figure(figID)
+    ax = plt.axes(projection='3d')
+    col_map = plt.get_cmap('viridis')
+    X, Y = np.meshgrid(xVar, yVar, sparse=True)
+    ax.plot_surface(X, Y, zVar, cmap=col_map)
+    ax.set_xlabel(xLabel)
+    ax.set_ylabel(yLabel)
+    ax.set_zlabel(zLabel)
+    ax.view_init(20, 130)
+    fig.savefig(plotDir + figName + '.eps', format='eps', dpi=1200)
 
 
 def endPlot():
