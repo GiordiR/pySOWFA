@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import scipy.signal as scsig
 import scipy as sc
 
-import Turbine
-from plotUtils import plot, plotUtils, plotCompare, plotLog, plotLogCompare, plotLogUtils, plotLogLog, \
+import pySOWFA.Turbine as Turbine
+from pySOWFA.plotUtils import plot, plotUtils, plotCompare, plotLog, plotLogCompare, plotLogUtils, plotLogLog, \
                       plotLogLogCompare, plot3D, endPlot, getAxes, getTitle
 
 

@@ -9,10 +9,10 @@ import string
 from scipy.io import loadmat
 from scipy.signal import savgol_filter
 
-import Turbine
-import utils
-from mathUtils import FFT, xcorr_fft
-from plotUtils import plot, plotUtils, plotCompare, plotLog, plotLogCompare, plotLogUtils, plotLogLog, \
+import pySOWFA.Turbine as Turbine
+import pySOWFA.utils as utils
+from pySOWFA.mathUtils import FFT, xcorr_fft
+from pySOWFA.plotUtils import plot, plotUtils, plotCompare, plotLog, plotLogCompare, plotLogUtils, plotLogLog, \
                       plotLogLogCompare, plot3D, endPlot, getAxes, getTitle
 
 
