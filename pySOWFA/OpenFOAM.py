@@ -297,28 +297,28 @@ class OpenFOAM(Turbine):
         """
         Read sample set output data
 
+        :param str postProcDir: path to the postProcessing directory
         :param str var: variable to be read from file
         """
 
         # Set post-processing folder path or default one
         if postProcDir is None:
             postProcDir = './postProcessing/'
-        probePath = os.path.join(postProcDir, self.sampleName, '')
+        setsPath = os.path.join(postProcDir, 'sets')
 
         # Read probes files in post-processing time folders
-        timeDir = os.listdir(probePath)
+        timeDir = os.listdir(setsPath)
         for t in range(0, len(timeDir)):
-            probeDir = os.path.join(probePath, timeDir[t], '')
-            files = os.listdir(probeDir)
+            setsDir = os.path.join(setsPath, timeDir[t])
 
         vector_components, tensor_components = utils.fieldsComponentsOF()
         if var in vector_components and not var.startswith('UPrime2Mean'):
-            with open(self.pathSets + '/' + self.probeName + '_U_UMean.xy', "r") as file:
+            with open(os.path.join(setsDir, self.probeName, '_U_UMean.xy'), "r") as file:
                 db = pd.read_csv(file, sep='\s+', skiprows=0, header=None)
                 values = db.to_numpy(dtype=float)
-                self.x = values[:, 0]
-                self.y = values[:, 1]
-                self.z = values[:, 2]
+                self.xSets = values[:, 0]
+                self.ySets = values[:, 1]
+                self.zSets = values[:, 2]
                 self.Ux = values[:, 3]
                 self.Uy = values[:, 4]
                 self.Uz = values[:, 5]
@@ -326,18 +326,20 @@ class OpenFOAM(Turbine):
                 self.UMeany = values[:, 7]
                 self.UMeanz = values[:, 8]
         elif var.startswith('UPrime2Mean'):
-            with open(self.pathSets + '/' + self.probeName + '_UPrime2Mean.xy', "r") as file:
+            with open(os.path.join(setsDir, self.probeName, '_UPrime2Mean.xy'), "r") as file:
                 db2 = pd.read_csv(file, sep='\s+', skiprows=0, header=None)
                 values2 = db2.to_numpy(dtype=float)
-                self.x = values2[:, 0]
-                self.y = values2[:, 1]
-                self.z = values2[:, 2]
+                self.xSets = values2[:, 0]
+                self.ySets = values2[:, 1]
+                self.zSets = values2[:, 2]
                 self.UPrime2Meanxx = values2[:, 3]
                 self.UPrime2Meanxy = values2[:, 4]
                 self.UPrime2Meanxz = values2[:, 5]
                 self.UPrime2Meanyy = values2[:, 6]
                 self.UPrime2Meanyz = values2[:, 7]
                 self.UPrime2Meanzz = values2[:, 8]
+        self.setsDim = len(self.xSets)
+        self.nProbeSets = 1
 
     def readWakeExperiment(self, expDir=None, probeSet='cross'):
         """
@@ -569,7 +571,7 @@ class OpenFOAM(Turbine):
         :param int compareID: figure identification number for comparison
         """
         if plotDir is None:
-            plotDir = './postProcessing/' + self.sampleName + '/plots/'
+            plotDir = os.path.join('./postProcessing', self.sampleName, 'plots')
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
@@ -580,7 +582,7 @@ class OpenFOAM(Turbine):
             x = self.probeLoc[probeStart:probeEnd, 0]
             y = self.probeLoc[probeStart:probeEnd, 1]
             z = self.probeLoc[probeStart:probeEnd, 2]
-            # Find x axis for plot
+            # Find x-axis for plot
             if x[1] != x[2]:
                 yVar = x
                 ylabel = 'x [m]'
@@ -615,112 +617,92 @@ class OpenFOAM(Turbine):
 
         :param int figID: figure identification number
         :param str plotDir: plot saving directory path
-        :param str sampleType: type of sample method used [probe, set]
+        :param str sampleType: type of sample method used [probe, sets]
         :param str var: field to be plotted
         :param str normVar: normalizing variable
         :param int compareID: figure identification number for comparison
         """
         if plotDir is None:
-            plotDir = './postProcessing/' + self.sampleName + '/plots/'
+            plotDir = os.path.join('./postProcessing', self.sampleName, 'plots')
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
-        if sampleType=='probe':
-            # Plot every set of probes
-            probeStart = 0
-            for i in range(0, self.nProbeSets):
-                probeEnd = probeStart + self.setsDim[i]
+        # Plot every set of probes
+        probeStart = 0
+        for i in range(0, self.nProbeSets):
+            probeEnd = probeStart + self.setsDim[i]
+            if sampleType == 'probe':
                 x = self.probeLoc[probeStart:probeEnd, 0]
                 y = self.probeLoc[probeStart:probeEnd, 1]
                 z = self.probeLoc[probeStart:probeEnd, 2]
-                # Find x axis for plot
-                if x[1] != x[2]:
-                    yVar = x / self.rotor_D
-                    ylabel = 'x/D'
-                    xlim = None
-                    ylim = None
-                elif y[1] != y[2]:
-                    yVar = y / self.rotor_D
-                    ylabel = 'y/D'
-                    ylim = [-1, 1]
-                    xlim = [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                            max(vars(self)[var][-1, probeStart:probeEnd]) + 1]
-                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [0.5, 0.5])
-                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [0, 0])
-                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [-0.5, -0.5])
-                elif z[1] != z[2]:
-                    yVar = z
-                    ylabel = 'z [m]'
-                    ylim = [0, 3.5]
-                    xlim = [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                            max(vars(self)[var][-1, probeStart:probeEnd]) + 1]
-                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1],
-                              [self.nacelle_H - self.rotor_D / 2, self.nacelle_H - self.rotor_D / 2])
-                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [self.nacelle_H, self.nacelle_H])
-                    plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
-                                      max(vars(self)[var][-1, probeStart:probeEnd]) + 1],
-                              [self.nacelle_H + self.rotor_D / 2, self.nacelle_H + self.rotor_D / 2])
-                else:
-                    raise ValueError("Error! Probe points are equal!")
+            elif sampleType == 'sets':
+                x = self.xSets
+                y = self.ySets
+                z = self.zSets
+            # Find x-axis for plot
+            if x[1] != x[2]:
+                yVar = x / self.rotor_D
+                ylabel = 'x/D'
+                xlim = None
+                ylim = None
+            elif y[1] != y[2]:
+                yVar = y / self.rotor_D
+                ylabel = 'y/D'
+                ylim = [-1, 1]
+                xlim = [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                        max(vars(self)[var][-1, probeStart:probeEnd]) + 1]
+                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [0.5, 0.5])
+                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [0, 0])
+                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [-0.5, -0.5])
+            elif z[1] != z[2]:
+                yVar = z
+                ylabel = 'z [m]'
+                ylim = [0, 3.5]
+                xlim = [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                        max(vars(self)[var][-1, probeStart:probeEnd]) + 1]
+                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1],
+                          [self.nacelle_H - self.rotor_D / 2, self.nacelle_H - self.rotor_D / 2])
+                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1], [self.nacelle_H, self.nacelle_H])
+                plotUtils(figID, [min(vars(self)[var][-1, probeStart:probeEnd]) - 1,
+                                  max(vars(self)[var][-1, probeStart:probeEnd]) + 1],
+                          [self.nacelle_H + self.rotor_D / 2, self.nacelle_H + self.rotor_D / 2])
+            else:
+                raise ValueError("Error! Probe points are equal!")
+            if normVar is None:
+                xVar = vars(self)[var][-1, probeStart:probeEnd]
+                xlabel = getAxes(var)
+                figName = '/' + var + str(figID)
+            else:
+                xVar = np.divide(vars(self)[var][-1, probeStart:probeEnd], getattr(normVar[0], normVar[1])[-1])
+                xlabel = getAxes(var) + '/' + normVar[1]
+                figName = var + str(figID) + '_norm'
+            distance = round((x[0] / self.rotor_D) / 0.5) * 0.5
+            title = 'Distance: ' + str(distance) + 'D'
+            label = self.turbineName
+            if compareID is not None:
                 if normVar is None:
                     xVar = vars(self)[var][-1, probeStart:probeEnd]
-                    xlabel = getAxes(var)
-                    figName = '/' + var + str(figID)
+                    plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                 else:
                     xVar = np.divide(vars(self)[var][-1, probeStart:probeEnd], getattr(normVar[0], normVar[1])[-1])
-                    xlabel = getAxes(var) + '/' + normVar[1]
-                    figName = var + str(figID) + '_norm'
-                distance = round((x[0] / self.rotor_D) / 0.5) * 0.5
-                title = 'Distance: ' + str(distance) + 'D'
-                label = self.turbineName
-                if compareID is not None:
-                    if normVar is None:
-                        xVar = vars(self)[var][-1, probeStart:probeEnd]
-                        plotCompare(compareID, xVar, yVar, label, plotDir, figName)
-                    else:
-                        xVar = np.divide(vars(self)[var][-1, probeStart:probeEnd], getattr(normVar[0], normVar[1])[-1])
-                        plotCompare(compareID, xVar, yVar, var, plotDir, figName)
-                else:
-                    if var.startswith('TI'):
-                        xlim = [0.0, 0.1]
-                    if normVar is None:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
-                    else:
-                        plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
-                probeStart = probeEnd
-
-            self.xVarWake = xVar
-            self.yVarWake = yVar
-            self.ylabelWake = ylabel
-        elif sampleType=='set':
-            if normVar == 'Exp':
-                xVar = np.divide(vars(self)[var], 4.0)
-                yVar = np.divide(self.yCross, self.rotD)
-                label = 'Exp. Data'
+                    plotCompare(compareID, xVar, yVar, var, plotDir, figName)
             else:
-                label = self.case
+                if var.startswith('TI'):
+                    xlim = [0.0, 0.1]
                 if normVar is None:
-                    xVar = vars(self)[var]
+                    plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
                 else:
-                    xVar = np.divide(vars(self)[var], getattr(normVar[0], normVar[1]))
-                yVar = np.divide(self.y, self.rotD)
-            if compareID is None:
-                plt.figure(figID)
-                if normVar != 'Exp':
-                    xVar = savgol_filter(xVar, 31, 2)
-                plt.plot(xVar, yVar, label=label)
-                if xlim is None:
-                    # xlim = [min(vars(self)[var])-1, max(vars(self)[var])+1]
-                    if var.startswith('TI'):
-                        xlim = [0.0, 0.5]
-                    else:
-                        xlim = [0.2, 1.2]
-                ylim = [-1, 1]
+                    plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
+            probeStart = probeEnd
+
+        self.xVarWake = xVar
+        self.yVarWake = yVar
+        self.ylabelWake = ylabel
 
     def plotWakeExperiment(self, compareID, plotDir=None, expProbe='probe_exp_cross1'):
         """
@@ -735,29 +717,17 @@ class OpenFOAM(Turbine):
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
-        if expProbe == 'probe_exp_cross1':
+        if expProbe == 'probe_exp_cross':
             xVar = self.U1Meanx
             yVar = self.yCross / self.rotor_D
             label = 'Experimental Data'
             figName = '/expComparison_cross1_' + str(compareID)
             plotCompare(compareID, xVar, yVar, label, plotDir, figName)
-        elif expProbe == 'probe_exp_cross2':
-            xVar = self.U2Meanx
-            yVar = self.yCross / self.rotor_D
-            label = 'Experimental Data'
-            figName = '/expComparison_cross2_' + str(compareID)
-            plotCompare(compareID, xVar, yVar, label, plotDir, figName)
-        elif expProbe == 'probe_exp_along1':
+        elif expProbe == 'probe_exp_along':
             xVar = self.U1Meanx
             yVar = self.xAlong / self.rotor_D
             label = 'Experimental Data'
             figName = '/expComparison_along1_' + str(compareID)
-            plotCompare(compareID, xVar, yVar, label, plotDir, figName)
-        elif expProbe == 'probe_exp_along2':
-            xVar = self.U2Meanx
-            yVar = self.xAlong / self.rotor_D
-            label = 'Experimental Data'
-            figName = '/expComparison_along2_' + str(compareID)
             plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
         self.xVarWakeExp = xVar
