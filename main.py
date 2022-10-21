@@ -1,2 +1,4 @@
+from tutorials.application_steady import steady_flex
+
 if __name__ == '__main__':
-    print("Hi")
+    steady_flex()

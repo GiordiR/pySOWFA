@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from scipy.signal import savgol_filter
 
-import Turbine
-import utils
-from mathUtils import FFT, xcorr_fft
-from plotUtils import plot, plotUtils, plotCompare, plotLog, plotLogCompare, plotLogUtils, plotLogLog, \
+import pySOWFA.Turbine as Turbine
+import pySOWFA.utils as utils
+from pySOWFA.mathUtils import FFT, xcorr_fft
+from pySOWFA.plotUtils import plot, plotUtils, plotCompare, plotLog, plotLogCompare, plotLogUtils, plotLogLog, \
                       plotLogLogCompare, plot3D, endPlot, getAxes, getTitle
 
 
@@ -130,8 +130,6 @@ class OpenFOAM(Turbine):
     def readProbes(self, postProcDir=None):
         """
         Read probes data output from OpenFOAM output file
-
-        TODO: change self attributes to return ones
 
         :param str postProcDir: post-processing OpenFOAM folder path
         """
@@ -298,12 +296,24 @@ class OpenFOAM(Turbine):
             file.write("\n}")
             '''
 
-    def readSets(self, var='Ux'):
+    def readSets(self, postProcDir=None, var='Ux'):
         """
         Read sample set output data
 
         :param str var: variable to be read from file
         """
+
+        # Set post-processing folder path or default one
+        if postProcDir is None:
+            postProcDir = './postProcessing/'
+        probePath = os.path.join(postProcDir, self.sampleName, '')
+
+        # Read probes files in post-processing time folders
+        timeDir = os.listdir(probePath)
+        for t in range(0, len(timeDir)):
+            probeDir = os.path.join(probePath, timeDir[t], '')
+            files = os.listdir(probeDir)
+
         vector_components, tensor_components = utils.fieldsComponentsOF()
         if var in vector_components and not var.startswith('UPrime2Mean'):
             with open(self.pathSets + '/' + self.probeName + '_U_UMean.xy', "r") as file:
@@ -341,7 +351,7 @@ class OpenFOAM(Turbine):
         """
 
         if expDir is None:
-            expDir = '/home/giordi/Desktop/File_galleria/POLIMI_UNAFLOW_DATA'
+            expDir = '../../UNAFLOW/WAKE'
 
         # WAKE CROSS
         if probeSet == 'cross':
@@ -349,7 +359,7 @@ class OpenFOAM(Turbine):
             self.yCross = np.arange(-1.47, 1.740, 0.1)
             self.zCross = np.array([2.085, 1.735])
 
-            wake_cross = loadmat(expDir + '/' + 'WAKE_CROSS/TN02.mat')
+            wake_cross = np.load(os.path.join(expDir, 'CW_Steady_V4.dat'))
             self.time = wake_cross['t']
             self.U1x = wake_cross['u'][:, :, 0]  # probe 1
             self.U1y = wake_cross['v'][:, :, 0]  # probe 1
@@ -369,8 +379,7 @@ class OpenFOAM(Turbine):
             self.yAlong = np.array([0.7, 0.9])
             self.zAlong = np.array([2.1, 2.1])
 
-            wake_along = loadmat(expDir + '/' + 'WAKE_ALONG/TN16.mat')
-
+            wake_along = np.load(os.path.join(expDir, 'AW_Steady_V4.dat'))
             self.time = wake_along['t']
             self.U1x = wake_along['u'][:, :, 0]  # probe 1
             self.U1y = wake_along['v'][:, :, 0]  # probe 1
@@ -628,7 +637,7 @@ class OpenFOAM(Turbine):
                 plot(figID, xVar, yVar, xlabel, ylabel, var, plotDir, figName, ylim=ylim)
             probeStart = probeEnd
 
-    def plotWakeProfile(self, figID, plotDir=None, sampleType='probe', var='p', normVar=None, xLim=None, compareID=None):
+    def plotWakeProfile(self, figID, plotDir=None, sampleType='probe', var='p', normVar=None, xlim=None, compareID=None):
         """
         Compute and plot wake profile
 
