@@ -13,9 +13,6 @@ from pySOWFA.plotUtils import plot, plotUtils, plotCompare, plotLog, plotLogComp
                       plotLogLogCompare, plot3D, endPlot, getAxes, getTitle
 
 
-
-
-
 class OpenFOAM(Turbine):
     """
     Class to postprocess OpenFOAM related output files (e.g. probes, sample)
@@ -351,65 +348,40 @@ class OpenFOAM(Turbine):
         """
 
         if expDir is None:
-            expDir = '../../UNAFLOW/WAKE'
+            expDir = '/home/giordi/Scrivania/UNAFLOW/WAKE'
 
         # WAKE CROSS
         if probeSet == 'cross':
             self.xCross = np.array([5.48, 5.48])
             self.yCross = np.arange(-1.47, 1.740, 0.1)
-            self.zCross = np.array([2.085, 1.735])
+            self.zCross = np.array([2.085, 2.085])
 
-            wake_cross = np.load(os.path.join(expDir, 'CW_Steady_V4.dat'))
-            self.time = wake_cross['t']
-            self.U1x = wake_cross['u'][:, :, 0]  # probe 1
-            self.U1y = wake_cross['v'][:, :, 0]  # probe 1
-            self.U1z = wake_cross['w'][:, :, 0]  # probe 1
-            self.U2x = wake_cross['u'][:, :, 1]  # probe 2
-            self.U2y = wake_cross['v'][:, :, 1]  # probe 2
-            self.U2z = wake_cross['w'][:, :, 1]  # probe 2
+            wake_cross = pd.read_csv(os.path.join(expDir, 'CW_Steady_V4.dat'), delimiter='\t', header=None).to_numpy()
+
+            self.time = wake_cross[:, 0]
+            self.U1x = wake_cross[:-1, 2::3]
+            self.U1y = wake_cross[:-1, 3::3]
+            self.U1z = wake_cross[:-1, 4::3]
 
             self.U1Meanx = np.sum(self.U1x, axis=0) / len(self.U1x)
             self.U1Meany = np.sum(self.U1y, axis=0) / len(self.U1y)
             self.U1Meanz = np.sum(self.U1z, axis=0) / len(self.U1z)
-            self.U2Meanx = np.sum(self.U2x, axis=0) / len(self.U2x)
-            self.U2Meany = np.sum(self.U2y, axis=0) / len(self.U2y)
-            self.U2Meanz = np.sum(self.U2z, axis=0) / len(self.U2z)
+
         elif probeSet == 'along':
             self.xAlong = np.arange(2.18, 5.81, 0.33)
             self.yAlong = np.array([0.7, 0.9])
             self.zAlong = np.array([2.1, 2.1])
 
-            wake_along = np.load(os.path.join(expDir, 'AW_Steady_V4.dat'))
-            self.time = wake_along['t']
-            self.U1x = wake_along['u'][:, :, 0]  # probe 1
-            self.U1y = wake_along['v'][:, :, 0]  # probe 1
-            self.U1z = wake_along['w'][:, :, 0]  # probe 1
-            self.U2x = wake_along['u'][:, :, 1]  # probe 2
-            self.U2y = wake_along['v'][:, :, 1]  # probe 2
-            self.U2z = wake_along['w'][:, :, 1]  # probe 2
+            wake_along = pd.read_csv(os.path.join(expDir, 'AW_Steady_V4.dat'), delimiter='\t', header=None).to_numpy()
+
+            self.time = wake_along[:, 0]
+            self.U1x = wake_along[:-1, 2::3]
+            self.U1y = wake_along[:-1, 3::3]
+            self.U1z = wake_along[:-1, 4::3]
 
             self.U1Meanx = np.sum(self.U1x, axis=0) / len(self.U1x)
             self.U1Meany = np.sum(self.U1y, axis=0) / len(self.U1y)
             self.U1Meanz = np.sum(self.U1z, axis=0) / len(self.U1z)
-            self.U2Meanx = np.sum(self.U2x, axis=0) / len(self.U2x)
-            self.U2Meany = np.sum(self.U2y, axis=0) / len(self.U2y)
-            self.U2Meanz = np.sum(self.U2z, axis=0) / len(self.U2z)
-            '''
-            for i in range(0, wake_along['u'].size[1]):
-                self.U1x = wake_along['u'][:, i, 0]  # probe 1
-                self.U1y = wake_along['v'][:, i, 0]  # probe 1
-                self.U1z = wake_along['w'][:, i, 0]  # probe 1
-                self.U2x = wake_along['u'][:, i, 1]  # probe 2
-                self.U2y = wake_along['v'][:, i, 1]  # probe 2
-                self.U2z = wake_along['w'][:, i, 1]  # probe 2
-
-                vars(self)['U1Meanx'+str(i)] = np.sum(self.U1x, axis=0) / len(self.U1x)
-                vars(self)['U1Meany'+str(i)] = np.sum(self.U1y, axis=0) / len(self.U1y)
-                vars(self)['U1Meanz'+str(i)] = np.sum(self.U1z, axis=0) / len(self.U1z)
-                vars(self)['U2Meanx'+str(i)] = np.sum(self.U2x, axis=0) / len(self.U2x)
-                vars(self)['U2Meany'+str(i)] = np.sum(self.U2y, axis=0) / len(self.U2y)
-                vars(self)['U2Meanz'+str(i)] = np.sum(self.U2z, axis=0) / len(self.U2z)
-            '''
 
     def getTurbulenceIntensity(self, rms='UPrime2Mean'):
         """
