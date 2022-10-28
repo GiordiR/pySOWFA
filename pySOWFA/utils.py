@@ -1,3 +1,5 @@
+from numpy import delete
+
 def fieldsOF():
     """
     List of OpenFOAM fields
@@ -27,17 +29,37 @@ def fieldsComponentsOF():
         x_components = vector_field + 'x'
         y_components = vector_field + 'y'
         z_components = vector_field + 'z'
-        vector_components.append(x_components, y_components, z_components)
+        vector_components.append(x_components)
+        vector_components.append(y_components)
+        vector_components.append(z_components)
 
     tensor_components = []
     for tensor_field in tensor_fields:
-        xx_components = vector_field + 'xx'
-        yy_components = vector_field + 'yy'
-        zz_components = vector_field + 'zz'
-        xy_components = vector_field + 'xy'
-        xz_components = vector_field + 'xz'
-        yz_components = vector_field + 'yz'
-        tensor_components.append(xx_components, yy_components, zz_components, xy_components,
-                                 xz_components, yz_components)
+        xx_components = tensor_field + 'xx'
+        yy_components = tensor_field + 'yy'
+        zz_components = tensor_field + 'zz'
+        xy_components = tensor_field + 'xy'
+        xz_components = tensor_field + 'xz'
+        yz_components = tensor_field + 'yz'
+        tensor_components.append(xx_components)
+        tensor_components.append(yy_components)
+        tensor_components.append(zz_components)
+        tensor_components.append(xy_components)
+        tensor_components.append(xz_components)
+        tensor_components.append(yz_components)
 
     return vector_components, tensor_components
+
+def cleanDoubleData(dataArray, coordinateArray1, coordinateArray2, coordinateArray3):
+    """ Remove duplicate data and retain their indexes"""
+    index = []
+    for pos in range(1, len(dataArray)):
+        if dataArray[pos] == dataArray[pos-1]:
+            index.append(pos)
+
+    newData = delete(dataArray, index)
+    newCoordinate1 = delete(coordinateArray1, index)
+    newCoordinate2 = delete(coordinateArray2, index)
+    newCoordinate3 = delete(coordinateArray3, index)
+
+    return newData, newCoordinate1, newCoordinate2, newCoordinate3

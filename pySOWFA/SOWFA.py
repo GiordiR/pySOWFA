@@ -35,6 +35,8 @@ class SOWFA(Turbine):
         if turbineOutDir is None:
             turbineOutDir = "./postProcessing/turbineOutput/0/"
 
+
+
         # Find files in the directory
         files = os.listdir(turbineOutDir)
         self.SOWFAturbine = []

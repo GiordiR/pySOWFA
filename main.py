@@ -1,4 +1,4 @@
-from tutorials.application_steady import steady_flex
+from tutorials.application_steady import turbulent_turbine
 
 if __name__ == '__main__':
-    steady_flex()
+    turbulent_turbine()
