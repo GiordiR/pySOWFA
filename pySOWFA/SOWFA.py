@@ -23,7 +23,7 @@ class SOWFA(Turbine):
     def __init__(self, turbineName, turbineDir=None, turbineFileName=None):
         Turbine.__init__(self, turbineName, turbineDir, turbineFileName)
 
-    def readTurbineOutput(self, turbineOutDir=None, turbineNumber=1, nTurbines=1, fast=False):
+    def readTurbineOutput(self, turbineOutPath=None, turbineNumber=1, nTurbines=1, fast=False):
         """
         Read SOWFA turbine output files
 
@@ -32,10 +32,12 @@ class SOWFA(Turbine):
         :param int nTurbines: number of Wind Turbines considered
         :param boolean fast: change output selection if SOWFA coupled with OpenFAST
         """
-        if turbineOutDir is None:
-            turbineOutDir = "./postProcessing/turbineOutput/0/"
+        if turbineOutPath is None:
+            turbineOutPath = "./postProcessing/turbineOutput/0/"
 
-
+        timeDir = os.listdir(turbineOutPath)
+        for t in range(0, len(timeDir)):
+            turbineOutDir = os.path.join(turbineOutPath, timeDir[t])
 
         # Find files in the directory
         files = os.listdir(turbineOutDir)
@@ -52,7 +54,7 @@ class SOWFA(Turbine):
 
         # Read turbine output files
         for file in files:
-            turb_db = pd.read_csv(turbineOutDir + file, sep=' ', skiprows=1, header=None)
+            turb_db = pd.read_csv(os.path.join(turbineOutDir, file), sep=' ', skiprows=1, header=None)
             turb_db.dropna(how='all', axis=1, inplace=True)
             values = turb_db.values
             for i in range(0, nTurbines):

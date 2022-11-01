@@ -223,9 +223,9 @@ class OpenFOAM(Turbine):
                     raise NameError('FieldTypeError')
 
         # Calculate fluctuating velocities
-        self.ux = self.Ux - self.UMeanx
-        self.uy = self.Uy - self.UMeany
-        self.uz = self.Uz - self.UMeanz
+        #self.ux = self.Ux - self.UMeanx
+        #self.uy = self.Uy - self.UMeany
+        #self.uz = self.Uz - self.UMeanz
 
     def makeSampleDict(self, fields=['U', 'UMean', 'UPrime2Mean'], sampleDictDir=None, setFormat='raw', surfaceFormat='raw', interpolationScheme='cell'):
         """
@@ -359,13 +359,13 @@ class OpenFOAM(Turbine):
             wake_cross = pd.read_csv(os.path.join(expDir, 'CW_Steady_V4.dat'), delimiter='\t', header=None).to_numpy()
 
             self.time = wake_cross[:, 0]
-            self.U1x = wake_cross[:-1, 2::3]
-            self.U1y = wake_cross[:-1, 3::3]
-            self.U1z = wake_cross[:-1, 4::3]
+            self.Ucrossx = wake_cross[:-1, 2::3]
+            self.Ucrossy = wake_cross[:-1, 3::3]
+            self.Ucrossz = wake_cross[:-1, 4::3]
 
-            self.U1Meanx = np.sum(self.U1x, axis=0) / len(self.U1x)
-            self.U1Meany = np.sum(self.U1y, axis=0) / len(self.U1y)
-            self.U1Meanz = np.sum(self.U1z, axis=0) / len(self.U1z)
+            self.UcrossMeanx = np.sum(self.Ucrossx, axis=0) / len(self.Ucrossx)
+            self.UcrossMeany = np.sum(self.Ucrossy, axis=0) / len(self.Ucrossy)
+            self.UcrossMeanz = np.sum(self.Ucrossz, axis=0) / len(self.Ucrossz)
 
         elif probeSet == 'along':
             self.xAlong = np.arange(2.18, 5.81, 0.33)
@@ -375,13 +375,13 @@ class OpenFOAM(Turbine):
             wake_along = pd.read_csv(os.path.join(expDir, 'AW_Steady_V4.dat'), delimiter='\t', header=None).to_numpy()
 
             self.time = wake_along[:, 0]
-            self.U1x = wake_along[:-1, 2::3]
-            self.U1y = wake_along[:-1, 3::3]
-            self.U1z = wake_along[:-1, 4::3]
+            self.Ucrossx = wake_along[:-1, 2::3]
+            self.Ucrossy = wake_along[:-1, 3::3]
+            self.Ucrossz = wake_along[:-1, 4::3]
 
-            self.U1Meanx = np.sum(self.U1x, axis=0) / len(self.U1x)
-            self.U1Meany = np.sum(self.U1y, axis=0) / len(self.U1y)
-            self.U1Meanz = np.sum(self.U1z, axis=0) / len(self.U1z)
+            self.UcrossMeanx = np.sum(self.Ucrossx, axis=0) / len(self.Ucrossx)
+            self.UcrossMeany = np.sum(self.Ucrossy, axis=0) / len(self.Ucrossy)
+            self.UcrossMeanz = np.sum(self.Ucrossz, axis=0) / len(self.Ucrossz)
 
     def getTurbulenceIntensity(self, rms='UPrime2Mean'):
         """
@@ -628,7 +628,7 @@ class OpenFOAM(Turbine):
         # Plot every set of probes
         probeStart = 0
         for i in range(0, self.nProbeSets):
-            probeEnd = probeStart + (self.setsDim if self.nProbeSets == 1 else self.setsDim[i])
+            probeEnd = probeStart + (self.setsDim if sampleType=='sets' else self.setsDim[i])
             if sampleType == 'probe':
                 x = self.probeLoc[probeStart:probeEnd, 0]
                 y = self.probeLoc[probeStart:probeEnd, 1]
@@ -669,6 +669,7 @@ class OpenFOAM(Turbine):
                 plotUtils(figID, [xlim[0], xlim[1]], [0.5, 0.5])
                 plotUtils(figID, [xlim[0], xlim[1]], [0, 0])
                 plotUtils(figID, [xlim[0], xlim[1]], [-0.5, -0.5])
+                figName = figName + '_H'
             elif z[1] != z[2]:
                 yVar = z
                 ylabel = 'z [m]'
@@ -680,6 +681,7 @@ class OpenFOAM(Turbine):
                 plotUtils(figID, [xlim[0], xlim[1]], [self.nacelle_H, self.nacelle_H])
                 plotUtils(figID, [xlim[0], xlim[1]],
                           [self.nacelle_H + self.rotor_D / 2, self.nacelle_H + self.rotor_D / 2])
+                figName = figName + '_V'
             else:
                 raise ValueError("Error! Probe points are equal!")
 
@@ -698,7 +700,7 @@ class OpenFOAM(Turbine):
                 plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             probeStart = probeEnd
 
-    def plotWakeExperiment(self, compareID, plotDir=None, expProbe='probe_exp_cross1'):
+    def plotWakeExperiment(self, compareID, plotDir=None, expProbe='probe_exp_cross', norm=False):
         """
         Plot wake profile from experimental data
 
@@ -712,16 +714,19 @@ class OpenFOAM(Turbine):
             os.makedirs(plotDir)
 
         if expProbe == 'probe_exp_cross':
-            xVar = self.U1Meanx
+            if norm:
+                xVar = self.UcrossMeanx / 4.0
+            else:
+                xVar = self.UcrossMeanx
             yVar = self.yCross / self.rotor_D
             label = 'Experimental Data'
-            figName = '/expComparison_cross1_' + str(compareID)
+            figName = '/expComparison_cross_' + str(compareID)
             plotCompare(compareID, xVar, yVar, label, plotDir, figName)
         elif expProbe == 'probe_exp_along':
-            xVar = self.U1Meanx
+            xVar = self.UcrossMeanx
             yVar = self.xAlong / self.rotor_D
             label = 'Experimental Data'
-            figName = '/expComparison_along1_' + str(compareID)
+            figName = '/expComparison_along_' + str(compareID)
             plotCompare(compareID, xVar, yVar, label, plotDir, figName)
 
     def plotWakeDeficitProfile(self, figID, plotDir=None, var='p', normVar=None, compareID=None):
