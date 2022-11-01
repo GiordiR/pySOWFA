@@ -154,6 +154,10 @@ def getTitle(varName):
         "RtAeroCp": "Rotor aerodynamic power coefficient",
         "RtAeroCq": "Rotor aerodynamic torque coefficient",
         "RtAeroCt": "Rotor aerodynamic thrust coefficient",
+        "RtArea": "Rotor Area",
+        "RtVAvgxh": "Rotor disk averaged relative wind velocity (no induction)",
+        "RtVAvgyh": "Rotor disk averaged relative wind velocity (no induction)",
+        "RtVAvgzh": "Rotor disk averaged relative wind velocity (no induction)",
         # Local Aerodyn
         "bladeAlpha": "Angle of Attack",
         "bladeRe": "Reynolds Number",
@@ -303,6 +307,10 @@ def getAxes(varName):
         "RtAeroCp": r"$C_p$ ",
         "RtAeroCq": r"$C_q$ ",
         "RtAeroCt": r"$C_t$ ",
+        "RtArea": r"A_{rotor}",
+        "RtVAvgxh": "RtVAvgxh",
+        "RtVAvgyh": "RtVAvgyh",
+        "RtVAvgzh": "RtVAvgzh",
         # Local Aerodyn
         "bladeAlpha": r"$\alpha$ [deg]",
         "bladeRe": "Re",
