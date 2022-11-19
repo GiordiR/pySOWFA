@@ -3,6 +3,8 @@ import re
 import numpy as np
 import pandas as pd
 from scipy.signal import savgol_filter
+from scipy.interpolate import interp1d
+import math
 
 import pySOWFA.Turbine as Turbine
 import pySOWFA.utils as utils
@@ -609,7 +611,7 @@ class OpenFOAM(Turbine):
                 plot(figID, xVar, yVar, xlabel, ylabel, var, plotDir, figName, ylim=ylim)
             probeStart = probeEnd
 
-    def plotWakeProfile(self, figID, plotDir=None, sampleType='probe', var='p', normVar=None, xLim=None, filter=None, compareID=None):
+    def plotWakeProfile(self, figID, plotDir=None, sampleType='probe', var='p', normVar=None, xLim=None, filter=None, interp=None, compareID=None):
         """
         Compute and plot wake profile
 
@@ -645,7 +647,7 @@ class OpenFOAM(Turbine):
                 figName = '/' + var + str(figID)
             else:
                 xVar = np.divide(vars(self)[var][-1, probeStart:probeEnd], getattr(normVar[0], normVar[1])[-1])
-                xlabel = getAxes(var) + '/' + normVar[1]
+                xlabel = getAxes(var) + '/' + getAxes(normVar[1])
                 figName = var + str(figID) + '_norm'
 
             xVar, x, y, z = utils.cleanDoubleData(xVar, x, y, z)
@@ -686,21 +688,31 @@ class OpenFOAM(Turbine):
                 raise ValueError("Error! Probe points are equal!")
 
             # Smooth data
+            if interp is not None:
+                yInterp = np.linspace(min(yVar), max(yVar), num=200, endpoint=True)
+                f = interp1d(yVar, xVar, kind=interp)
+                xVar = f(yInterp)
+                yVar = yInterp
             if filter is not None:
                 xVar = savgol_filter(xVar, filter[0], filter[1])
 
-            distance = round((x[0] / self.rotor_D) / 0.5) * 0.5
+            # distance = round((x[0] / self.rotor_D) / 0.5) * 0.5
+            distance = math.floor((x[0] / self.rotor_D) * 10) / 10
             title = 'Distance: ' + str(distance) + 'D'
             label = self.turbineName
             if compareID is not None:
-                plotCompare(compareID, xVar, yVar, var, plotDir, figName)
+                plotCompare(compareID, xVar, yVar, label, plotDir, figName)
             else:
                 if var.startswith('TI'):
                     xlim = [0.0, 0.1]
                 plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, ylim, xlim, title)
             probeStart = probeEnd
 
-    def plotWakeExperiment(self, compareID, plotDir=None, expProbe='probe_exp_cross', norm=False):
+        self.xVarWake = xVar
+        self.yVarWake = yVar
+        self.ylabelWake = ylabel
+
+    def plotWakeExperiment(self, compareID, plotDir=None, expProbe='probe_exp_cross', norm=False, interp=None, filter=None):
         """
         Plot wake profile from experimental data
 
@@ -719,12 +731,26 @@ class OpenFOAM(Turbine):
             else:
                 xVar = self.UcrossMeanx
             yVar = self.yCross / self.rotor_D
+
+            # Smooth data
+            if interp is not None:
+                yInterp = np.linspace(min(yVar), max(yVar), num=200, endpoint=True)
+                f = interp1d(yVar, xVar, kind=interp)
+                xVar = f(yInterp)
+                yVar = yInterp
+            if filter is not None:
+                xVar = savgol_filter(xVar, filter[0], filter[1])
+
+
             label = 'Experimental Data'
             figName = '/expComparison_cross_' + str(compareID)
             plotCompare(compareID, xVar, yVar, label, plotDir, figName)
         elif expProbe == 'probe_exp_along':
             xVar = self.UcrossMeanx
             yVar = self.xAlong / self.rotor_D
+            # Smooth data
+            if filter is not None:
+                xVar = savgol_filter(xVar, filter[0], filter[1])
             label = 'Experimental Data'
             figName = '/expComparison_along_' + str(compareID)
             plotCompare(compareID, xVar, yVar, label, plotDir, figName)
@@ -816,19 +842,30 @@ class OpenFOAM(Turbine):
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
-        xVar = (getattr(probeRef[0], probeRef[1]) - getattr(probeCompare[0], probeCompare[1])) / getattr(probeRef[0],
-                                                                                                         probeRef[1])
+        xVar = (getattr(probeRef[0], probeRef[1]) - getattr(probeCompare[0], probeCompare[1])[-1, :]) / getattr(probeRef[0],  probeRef[1])
         yVar = getattr(probeRef[0], probeRef[2])
         xlabel = r'$\epsilon$ '
         ylabel = getattr(probeCompare[0], 'ylabelWake')
-        xMean = np.mean(xVar)
-        label = labelCompare + ' - ' + r'$\epsilon_{mean} = $' + str(xMean.round(decimals=2))
+        #label = labelCompare + ' - ' + r'$\epsilon_{mean} = $' + str(xMean.round(decimals=3))
         title = 'Relative error distribution'
         figName = 'wakeError_' + str(figID)
         if compareID is None:
-            plot(figID, xVar, yVar, xlabel, ylabel, label, plotDir, figName, title=title)
+            plot(figID, xVar, yVar, xlabel, ylabel, labelCompare, plotDir, figName, title=title)
         else:
-            plotCompare(compareID, xVar, yVar, label, plotDir, figName)
+            plotCompare(compareID, xVar, yVar, labelCompare, plotDir, figName)
+
+        xMean = np.mean(xVar)
+        eRMS = np.sqrt(np.sum((getattr(probeCompare[0], probeCompare[1])[-1, :] - getattr(probeRef[0], probeRef[1])) ** 2)) / len(getattr(probeCompare[0], probeCompare[1]))
+
+        with open(os.path.join(plotDir, 'ErrorStatistics.txt'),'a+') as file:
+            file.write("\n{0:*^50s}".format('CASE ' + labelCompare))
+            file.write("\n")
+            file.write("\n{0:<50s}".format('Averaged Relative Velocity Error'))
+            file.write("{0:>60f}".format(xMean))
+            file.write("\n{0:<50s}".format('Root Mean Squared Error'))
+            file.write("{0:>60f}".format(eRMS))
+
+
 
     def plotResiduals(self, plotDir=None, var='UMeanx'):
         """

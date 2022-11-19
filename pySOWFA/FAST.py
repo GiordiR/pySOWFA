@@ -60,7 +60,7 @@ class FAST(Turbine):
         if outFileName is None:
             outFileName = 'WTM.out'
 
-        with open(self.outDir + outFileName, "r") as file:
+        with open(os.path.join(self.outDir,outFileName), "r") as file:
             db_FAST = pd.read_csv(file, sep='\t', skiprows=6, header=None, low_memory=False)
             db_FAST = db_FAST.rename(columns=db_FAST.iloc[0])
             db_FAST = db_FAST.drop(db_FAST.index[0:2])
@@ -114,23 +114,23 @@ class FAST(Turbine):
         :param str expDir: experimental data directory path
         """
         if expDir is None:
-            expDir = '/home/giordi/Desktop/File_galleria/POLIMI_UNAFLOW_DATA'
+            expDir = '/home/giordi/Scrivania/MyGit/UNAFLOW/FORCE'
 
-        force = loadmat(expDir + '/' + 'FORCE/Surge_V4A0F0.mat')
-        self.time = force['t']
-        self.TBFx = force['FTBxyz'][:, 0]
-        self.TBFy = force['FTBxyz'][:, 1]
-        self.TBFz = force['FTBxyz'][:, 2]
-        self.TBMx = force['FTBxyz'][:, 3]
-        self.TBMy = force['FTBxyz'][:, 4]
-        self.TBMz = force['FTBxyz'][:, 5]
+        force = pd.read_csv(os.path.join(expDir, 'Steady_V4_A0_F0.dat'), delimiter='\t', header=None, skiprows=2).to_numpy()
+        self.tExp = force[:, 0]
+        self.TTFxExp = force[:, 1]
+        self.TTFyExp = force[:, 2]
+        self.TTFzExp = force[:, 3]
+        self.TTMxExp = force[:, 4]
+        self.TTMyExp = force[:, 5]
+        self.TTMzExp = force[:, 6]
 
-        self.TTFx = force['FTTxyz'][:, 0]
-        self.TTFy = force['FTTxyz'][:, 1]
-        self.TTFz = force['FTTxyz'][:, 2]
-        self.TTMx = force['FTTxyz'][:, 3]
-        self.TTMy = force['FTTxyz'][:, 4]
-        self.TTMz = force['FTTxyz'][:, 5]
+        self.TBFxExp = force[:, 7]
+        self.TBFyExp = force[:, 8]
+        self.TBFzExp = force[:, 9]
+        self.TBMxExp = force[:, 10]
+        self.TBMyExp = force[:, 11]
+        self.TBMzExp = force[:, 12]
 
     def plotBladeTipDeflections(self, figID, plotDir=None, var='all', ylim=True, xlim=None, compareID=None):
         """
@@ -619,8 +619,12 @@ class FAST(Turbine):
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
         else:
-            xVar = self.Time
-            yVar = vars(self)[var]
+            if var.endswith('Exp'):
+                xVar = self.tExp
+                yVar = vars(self)[var] / 1000
+            else:
+                xVar = self.Time
+                yVar = vars(self)[var]
             xlabel = 'Time [s]'
             ylabel = getAxes(var)
             label = var
@@ -673,7 +677,13 @@ class FAST(Turbine):
                         plotLogCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
         else:
-            xVar, yVar = FFT(vars(self)[var], self.frq)
+            if var.endswith('Exp'):
+                frq = np.divide(1.0, self.tExp[1])
+                varExpTransf = vars(self)[var] / 1000
+                xVar, yVar = FFT(varExpTransf, frq)
+            else:
+                varTransf = vars(self)[var] - np.mean(vars(self)[var])
+                xVar, yVar = FFT(varTransf, self.frq)
             title = getTitle(var) + " - Frequency Spectrum"
             xlabel = 'frequency [Hz]'
             ylabel = 'PSD'
@@ -835,8 +845,12 @@ class FAST(Turbine):
                         plotCompare(compareID, xVar, yVar, label, plotDir, figName)
                     figID += 1
         else:
-            xVar = self.Time
-            yVar = vars(self)[var]
+            if var.endswith('Exp'):
+                xVar = self.tExp
+                yVar = vars(self)[var] / 1000
+            else:
+                xVar = self.Time
+                yVar = vars(self)[var]
             xlabel = 'Time [s]'
             ylabel = getAxes(var)
             label = var
@@ -1039,6 +1053,9 @@ class FAST(Turbine):
         if statFile is None:
             statFile = './FASTstatistics.txt'
 
+        if not os.path.isdir(os.path.abspath(os.path.join(statFile, os.pardir))):
+            os.makedirs(os.path.abspath(os.path.join(statFile, os.pardir)))
+
         ## BLADE
         # TIP DISPLACEMENTS
         # Max tip displacements
@@ -1068,21 +1085,21 @@ class FAST(Turbine):
         maxRootFyb1 = max(self.RootFyb1)
         maxRootMxb1 = max(self.RootMxb1)
         maxRootMyb1 = max(self.RootMyb1)
-        maxRootMzb1 = max(self.RootMzb1)
+        #maxRootMzb1 = max(self.RootMzb1)
 
         # Min root forces and moments
         minRootFxb1 = min(self.RootFxb1)
         minRootFyb1 = min(self.RootFyb1)
         minRootMxb1 = min(self.RootMxb1)
         minRootMyb1 = min(self.RootMyb1)
-        minRootMzb1 = min(self.RootMzb1)
+        #minRootMzb1 = min(self.RootMzb1)
 
         # Mean root forces and moments
         meanRootFxb1 = np.mean(self.RootFxb1)
         meanRootFyb1 = np.mean(self.RootFyb1)
         meanRootMxb1 = np.mean(self.RootMxb1)
         meanRootMyb1 = np.mean(self.RootMyb1)
-        meanRootMzb1 = np.mean(self.RootMzb1)
+        #meanRootMzb1 = np.mean(self.RootMzb1)
 
         ## TOWER
         # TOWER TOP DISPLACEMENTS
@@ -1168,8 +1185,8 @@ class FAST(Turbine):
             file.write("{0:>50f}".format(maxRootMxb1))
             file.write("\n{0:<40s}".format('Max flapwise blade root moment [kN-m]'))
             file.write("{0:>50f}".format(maxRootMyb1))
-            file.write("\n{0:<40s}".format('Max pitching moment [kN-m]'))
-            file.write("{0:>50f}".format(maxRootMzb1))
+            #file.write("\n{0:<40s}".format('Max pitching moment [kN-m]'))
+            #file.write("{0:>50f}".format(maxRootMzb1))
             file.write("\n")
             file.write("\n{0:<40s}".format('Min flapwise blade root shear force [N]'))
             file.write("{0:>50f}".format(minRootFxb1))
@@ -1179,9 +1196,9 @@ class FAST(Turbine):
             file.write("{0:>50f}".format(minRootMxb1))
             file.write("\n{0:<40s}".format('Min flapwise blade root moment [kN-m]'))
             file.write("{0:>50f}".format(minRootMyb1))
-            file.write("\n{0:<40s}".format('Min pitching moment [kN-m]'))
-            file.write("{0:>50f}".format(minRootMzb1))
-            file.write("\n")
+            #file.write("\n{0:<40s}".format('Min pitching moment [kN-m]'))
+            #file.write("{0:>50f}".format(minRootMzb1))
+            #file.write("\n")
             file.write("\n{0:<40s}".format('Mean flapwise blade root shear force [N]'))
             file.write("{0:>50f}".format(meanRootFxb1))
             file.write("\n{0:<40s}".format('Mean edgewise blade root shear force [N]'))
@@ -1190,8 +1207,8 @@ class FAST(Turbine):
             file.write("{0:>50f}".format(meanRootMxb1))
             file.write("\n{0:<40s}".format('Mean flapwise blade root moment [kN-m]'))
             file.write("{0:>50f}".format(meanRootMyb1))
-            file.write("\n{0:<40s}".format('Mean pitching moment [kN-m]'))
-            file.write("{0:>50f}".format(meanRootMzb1))
+            #file.write("\n{0:<40s}".format('Mean pitching moment [kN-m]'))
+            #file.write("{0:>50f}".format(meanRootMzb1))
             file.write("\n")
             file.write("\n")
             file.write("\n{0:*^50s}".format('TOWER'))

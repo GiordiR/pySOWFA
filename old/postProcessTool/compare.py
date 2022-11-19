@@ -13,17 +13,17 @@ postProcDir = './STEADY_medium_rigid2/postProcessing'
 '''
 # horizontal probes
 for i in range(1, 9):
-    sampleName = 'probe_wake_h'+str(i)+'D'
-    plotDir = './plot_compare/' + sampleName
-    p_h = OpenFOAM(turbineName, sampleName, turbineDir, turbineFileName)
+    probeName = 'probe_wake_h'+str(i)+'D'
+    plotDir = './plot_compare/' + probeName
+    p_h = OpenFOAM(turbineName, probeName, turbineDir, turbineFileName)
     p_h.readProbes(postProcDir)
     p_h.plotWakeProfile(i, plotDir, var='UMeanx')
 
 # vertical probes
 for i in range(1, 9):
-    sampleName = 'probe_wake_v'+str(i)+'D'
-    plotDir = './plot_compare/' + sampleName
-    p_v = OpenFOAM(turbineName, sampleName, turbineDir, turbineFileName)
+    probeName = 'probe_wake_v'+str(i)+'D'
+    plotDir = './plot_compare/' + probeName
+    p_v = OpenFOAM(turbineName, probeName, turbineDir, turbineFileName)
     p_v.readProbes(postProcDir)
     p_v.plotWakeProfile(i+8, plotDir, var='UMeanx')
 '''
@@ -72,17 +72,17 @@ postProcDir = './STEADY_medium_flex2/postProcessing'
 '''
 # horizontal probes
 for i in range(1, 9):
-    sampleName = 'probe_wake_h'+str(i)+'D'
-    plotDir = './plot_compare/' + sampleName
-    p_h = OpenFOAM(turbineName, sampleName, turbineDir, turbineFileName)
+    probeName = 'probe_wake_h'+str(i)+'D'
+    plotDir = './plot_compare/' + probeName
+    p_h = OpenFOAM(turbineName, probeName, turbineDir, turbineFileName)
     p_h.readProbes(postProcDir)
     p_h.plotWakeProfile(i, plotDir, var='UMeanx', compareID=i)
     
 # vertical probes
 for i in range(1, 9):
-    sampleName = 'probe_wake_v'+str(i)+'D'
-    plotDir = './plot_compare/' + sampleName
-    p_v = OpenFOAM(turbineName, sampleName, turbineDir, turbineFileName)
+    probeName = 'probe_wake_v'+str(i)+'D'
+    plotDir = './plot_compare/' + probeName
+    p_v = OpenFOAM(turbineName, probeName, turbineDir, turbineFileName)
     p_v.readProbes(postProcDir)
     p_v.plotWakeProfile(i+8, plotDir, var='UMeanx', compareID=i+8)
 '''

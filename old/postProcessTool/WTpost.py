@@ -8,9 +8,9 @@ turbineDir = './WTA/'
 postProcDir = turbineDir + 'postProcessing/'
 '''
 # Longitudinal probe
-sampleName = 'probe_long'
-plotDir = './plot_windTunnel/' + sampleName
-plong = OpenFOAM(turbineName, sampleName, turbineDir=turbineDir)
+probeName = 'probe_long'
+plotDir = './plot_windTunnel/' + probeName
+plong = OpenFOAM(turbineName, probeName, turbineDir=turbineDir)
 plong.readProbes(postProcDir)
 plong.plotSpaceCorrelations(plotDir)
 
@@ -25,27 +25,27 @@ pspec0.plotTimeCorrelations(plotDir)
 
 '''
 # Spectrum 1D front probe
-sampleName = 'probe_spectrum1DFront'
-plotDir = './plot_windTunnel/' + sampleName
-pspec1F = OpenFOAM(turbineName, sampleName, turbineDir=turbineDir)
+probeName = 'probe_spectrum1DFront'
+plotDir = './plot_windTunnel/' + probeName
+pspec1F = OpenFOAM(turbineName, probeName, turbineDir=turbineDir)
 pspec1F.readProbes(postProcDir)
 pspec1F.plotEnergySpectrum(plotDir)
 pspec1F.plotTimeCorrelations(plotDir)
 
 
 # Spectrum 1D back probe
-sampleName = 'probe_spectrum1DBack'
-plotDir = './plot_windTunnel/' + sampleName
-pspec1B = OpenFOAM(turbineName, sampleName, turbineDir=turbineDir)
+probeName = 'probe_spectrum1DBack'
+plotDir = './plot_windTunnel/' + probeName
+pspec1B = OpenFOAM(turbineName, probeName, turbineDir=turbineDir)
 pspec1B.readProbes(postProcDir)
 pspec1B.plotEnergySpectrum(plotDir)
 pspec1B.plotTimeCorrelations(plotDir)
 
 
 # Transversal probe
-sampleName = 'probe_trasv'
-plotDir = './plot_windTunnel/' + sampleName
-ptrasv = OpenFOAM(turbineName, sampleName, turbineDir=turbineDir)
+probeName = 'probe_trasv'
+plotDir = './plot_windTunnel/' + probeName
+ptrasv = OpenFOAM(turbineName, probeName, turbineDir=turbineDir)
 ptrasv.readProbes(postProcDir)
 ptrasv.plotSpaceCorrelations(plotDir)
 

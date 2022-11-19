@@ -148,7 +148,7 @@ class OpenFOAM(Turbine):
             file.write("\n{:4}{:<30}{}".format('', 'type', 'probes;'))
             file.write("\n{:4}{:<30}{}".format('', 'functionObjectLibs', '("libsampling.so");'))
             file.write("\n{:4}{:<30}{}".format('', 'enabled', 'true;'))
-            file.write("\n{:4}{:<30}{}{}".format('', 'sampleName', self.probeName, ';'))
+            file.write("\n{:4}{:<30}{}{}".format('', 'probeName', self.probeName, ';'))
             file.write("\n{:4}{:<30}{}{}".format('', 'outputControl', outCtrl, ';'))
             file.write("\n{:4}{:<30}{}{}".format('', 'outputInterval', int(outInt), ';'))
             if tStart and tEnd is not None:
@@ -339,16 +339,16 @@ class OpenFOAM(Turbine):
             self.U2Meanz = np.sum(self.U2z, axis=0) / len(self.U2z)
             '''
             for i in range(0, wake_along['u'].size[1]):
-                self.U1x = wake_along['u'][:, i, 0]  # probe 1
-                self.U1y = wake_along['v'][:, i, 0]  # probe 1
-                self.U1z = wake_along['w'][:, i, 0]  # probe 1
+                self.Ucrossx = wake_along['u'][:, i, 0]  # probe 1
+                self.Ucrossy = wake_along['v'][:, i, 0]  # probe 1
+                self.Ucrossz = wake_along['w'][:, i, 0]  # probe 1
                 self.U2x = wake_along['u'][:, i, 1]  # probe 2
                 self.U2y = wake_along['v'][:, i, 1]  # probe 2
                 self.U2z = wake_along['w'][:, i, 1]  # probe 2
 
-                vars(self)['U1Meanx'+str(i)] = np.sum(self.U1x, axis=0) / len(self.U1x)
-                vars(self)['U1Meany'+str(i)] = np.sum(self.U1y, axis=0) / len(self.U1y)
-                vars(self)['U1Meanz'+str(i)] = np.sum(self.U1z, axis=0) / len(self.U1z)
+                vars(self)['UcrossMeanx'+str(i)] = np.sum(self.Ucrossx, axis=0) / len(self.Ucrossx)
+                vars(self)['UcrossMeany'+str(i)] = np.sum(self.Ucrossy, axis=0) / len(self.Ucrossy)
+                vars(self)['UcrossMeanz'+str(i)] = np.sum(self.Ucrossz, axis=0) / len(self.Ucrossz)
                 vars(self)['U2Meanx'+str(i)] = np.sum(self.U2x, axis=0) / len(self.U2x)
                 vars(self)['U2Meany'+str(i)] = np.sum(self.U2y, axis=0) / len(self.U2y)
                 vars(self)['U2Meanz'+str(i)] = np.sum(self.U2z, axis=0) / len(self.U2z)
