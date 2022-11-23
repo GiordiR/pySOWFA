@@ -325,7 +325,7 @@ def steady_mesh_comparison():
     p_ec = OpenFOAM(turbName, probeName, turbineDir, turbineFileName)
     p_ec.readWakeExperiment(expDir=expDir, probeSet='cross')
     p_ec.plotWakeExperiment(1, plotDir, expProbe='probe_exp_cross', norm=True, interp='linear', filter=[15,3])
-    p_ec.plotWakeError(2, plotDir, probeRef=[p_ec, 'UcrossMeanx', 'yCross'], probeCompare=[p_c, 'UMeanx'], labelCompare=turbName)
+    p_ec.plotWakeError(2, plotDir, probeRef=[p_ec, 'UcrossMeanx', 'yCross'], probeCompare=[p_c, 'UMeanx', pURef, 'UMeanx'], labelCompare=turbName)
 
     ##################################################################
     turbName = 'Medium mesh'
@@ -346,7 +346,7 @@ def steady_mesh_comparison():
     p_c = OpenFOAM(turbName, probeName, turbineDir, turbineFileName)
     p_c.readProbes(postProcDir=postProcDir)
     p_c.plotWakeProfile(1, plotDir, var='UMeanx', sampleType='probe', normVar=[pURef, 'UMeanx'], compareID=1, interp='linear', filter=filter, xLim=xLim)
-    p_ec.plotWakeError(2, plotDir, probeRef=[p_ec, 'UcrossMeanx', 'yCross'], probeCompare=[p_c, 'UMeanx'],labelCompare=turbName, compareID=2)
+    p_ec.plotWakeError(2, plotDir, probeRef=[p_ec, 'UcrossMeanx', 'yCross'], probeCompare=[p_c, 'UMeanx', pURef, 'UMeanx'],labelCompare=turbName, compareID=2)
 
     ##################################################################
     turbName = 'Coarse mesh'
@@ -367,7 +367,7 @@ def steady_mesh_comparison():
     p_c = OpenFOAM(turbName, probeName, turbineDir, turbineFileName)
     p_c.readProbes(postProcDir=postProcDir)
     p_c.plotWakeProfile(1, plotDir, var='UMeanx', sampleType='probe', normVar=[pURef, 'UMeanx'], compareID=1, interp='linear', filter=filter, xLim=xLim)
-    p_ec.plotWakeError(2, plotDir, probeRef=[p_ec, 'UcrossMeanx', 'yCross'], probeCompare=[p_c, 'UMeanx'],labelCompare=turbName, compareID=2)
+    p_ec.plotWakeError(2, plotDir, probeRef=[p_ec, 'UcrossMeanx', 'yCross'], probeCompare=[p_c, 'UMeanx', pURef, 'UMeanx'],labelCompare=turbName, compareID=2)
 
 
 def steady_epsilon_comparison():
@@ -495,7 +495,7 @@ def test_interpolate_wakes(turbType):
 
 
 def test_interpolate_exp(turbType):
-    filter = [11, 5]
+    filter = [15, 3]
     xLim = [0.2, 1.2]
 
     turbName = turbType
@@ -510,7 +510,8 @@ def test_interpolate_exp(turbType):
     # probe reference wind streamwise velocity
     probeName = 'probe_URef'
     pURef = OpenFOAM(turbName, probeName, turbineDir, turbineFileName)
-    pURef.readSets(postProcDir=postProcDir, var='UMeanx')
+    #pURef.readSets(postProcDir=postProcDir, var='UMeanx')
+    pURef.readProbes(postProcDir=postProcDir)
 
     # experimental cross
     probeName = 'probe_exp_cross1'

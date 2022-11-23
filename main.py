@@ -6,5 +6,5 @@ if __name__ == '__main__':
     steady_mesh_comparison()
     #steady_epsilon_comparison()
     #test_interpolate_wake('flex')
-    #test_interpolate_exp('fine')
+    #test_interpolate_exp('coarse')
     #generate_statistics()

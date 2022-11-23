@@ -842,8 +842,19 @@ class OpenFOAM(Turbine):
         if not os.path.isdir(plotDir):
             os.makedirs(plotDir)
 
-        xVar = (getattr(probeRef[0], probeRef[1]) - getattr(probeCompare[0], probeCompare[1])[-1, :]) / getattr(probeRef[0],  probeRef[1])
-        yVar = getattr(probeRef[0], probeRef[2])
+        Uref = getattr(probeCompare[2], probeCompare[3])
+        if len(Uref) == 1:
+            Uref = getattr(probeCompare[2], probeCompare[3])
+        else:
+            Uref = getattr(probeCompare[2], probeCompare[3])[-1]
+
+        Ucomp = np.divide(getattr(probeCompare[0], probeCompare[1])[-1, 1:],
+                          Uref)
+        Umes = np.divide(getattr(probeRef[0], probeRef[1])[1:], 4.0)
+
+        xVar = (Umes - Ucomp) / Umes
+        yVar = getattr(probeRef[0], probeRef[2]) / self.rotor_D
+        yVar = yVar[1:]
         xlabel = r'$\epsilon$ '
         ylabel = getattr(probeCompare[0], 'ylabelWake')
         #label = labelCompare + ' - ' + r'$\epsilon_{mean} = $' + str(xMean.round(decimals=3))
@@ -855,7 +866,8 @@ class OpenFOAM(Turbine):
             plotCompare(compareID, xVar, yVar, labelCompare, plotDir, figName)
 
         xMean = np.mean(xVar)
-        eRMS = np.sqrt(np.sum((getattr(probeCompare[0], probeCompare[1])[-1, :] - getattr(probeRef[0], probeRef[1])) ** 2)) / len(getattr(probeCompare[0], probeCompare[1]))
+        N = len(getattr(probeRef[0], probeRef[1]))
+        eRMS = np.sqrt(np.sum((Ucomp - Umes) ** 2)) / N
 
         with open(os.path.join(plotDir, 'ErrorStatistics.txt'),'a+') as file:
             file.write("\n{0:*^50s}".format('CASE ' + labelCompare))
